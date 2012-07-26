@@ -1,0 +1,36 @@
+{
+  "name": "nodiak",
+  "version": "0.0.1",
+  "description": "Node.js client for the Riak Distributed Database",
+  "author": "Nathan Aschbacher <nathan@coradine.com>",
+  "contributors": [ 
+    { "name": "Nathan Aschbacher", "email": "nathan@coradine.com" }
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:coradine/tools-node_modules-nodiak.git"
+  },
+  "dependencies": {
+    "deepmerge": ">=0.2.5",
+    "async": ">=0.1.22",
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "keywords": [
+    "riak",
+    "basho",
+    "client",
+    "riak-js",
+    "nodiak"
+  ],
+  "engines": {
+    "node": ">=0.8.x"
+  }
+}
