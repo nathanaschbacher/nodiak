@@ -6,14 +6,18 @@ var riaks = require('./lib/client').getClient('localhost', '8071', 'https');
 
 
 
-//var bucket = riaks.buckets.get('testing');
+var bucket = riaks.buckets.get('testing');
 
-riak.objects.delete('testing', "some_key_value", {returnbody: true}, function(err, obj, meta) {
-    console.log(err);
-    console.log(meta);
-    console.log(obj.toString());
-    //console.log(JSON.parse(obj));
+bucket.objects.get('my_indexed_obj', {}, {}, function(err, objects) {
+    console.log(util.inspect(objects, false, null, null));
 });
+
+// riaks.objects.get('testing', "my_indexed_obj2", null, null, function(err, obj, meta) {
+//     console.log(err);
+//     console.log((meta));
+//     console.log(obj.toString());
+//     console.log(JSON.parse(obj));
+// });
 
 // bucket.keys(true, function(err, obj, meta){
 //   console.log(err);
