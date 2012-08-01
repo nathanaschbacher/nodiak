@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "deepmerge": ">=0.2.5",
-    "async": ">=0.1.22",
+    "async": ">=0.1.22"
   },
   "devDependencies": {
     "mocha": "*",
