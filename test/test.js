@@ -116,6 +116,38 @@ describe("Nodiak Riak Client Test Suite", function() {
                 pass();
             });
         });
+
+        it("should be able to perform ranged integer 2i searches", function(pass) {
+            riak.buckets.search('test', [0,10000], 'numbers_int', function(err, keys) {
+                should.not.exist(err);
+                keys.should.be.an.instanceOf(Array).with.lengthOf(25);
+                pass();
+            });
+        });
+
+        it("should be able to perform exact match integer 2i searches", function(pass) {
+            riak.buckets.search('test', 1000, 'numbers_int', function(err, keys) {
+                should.not.exist(err);
+                keys.should.be.an.instanceOf(Array).with.lengthOf(5);
+                pass();
+            });
+        });
+
+        it("should be able to perform ranged binary 2i searches", function(pass) {
+            riak.buckets.search('test', ['a','zzzzzzzzzzz'], 'strings_bin', function(err, keys) {
+                should.not.exist(err);
+                keys.should.be.an.instanceOf(Array).with.lengthOf(20);
+                pass();
+            });
+        });
+
+        it("should be able to perform exact match binary 2i searches", function(pass) {
+            riak.buckets.search('test', 'that', 'strings_bin', function(err, keys) {
+                should.not.exist(err);
+                keys.should.be.an.instanceOf(Array).with.lengthOf(5);
+                pass();
+            });
+        });
     });
 
     describe("Using the base client to interact with objects", function() {
@@ -198,8 +230,8 @@ describe("Nodiak Riak Client Test Suite", function() {
     after(function(pass) { // teardown pre-test setup.
         riak.buckets.list(function(err, buckets) {
             async.map(buckets,
-                function(bucket, _intermediate) {
-                    var bucket = riak.buckets.get();
+                function(bucket_name, _intermediate) {
+                    var bucket = riak.buckets.get(bucket_name);
                     bucket.objects.all(function(err, r_objs){
                         bucket.objects.delete(r_objs, function(err, result) {
                             _intermediate(err, result);
@@ -214,3 +246,98 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
     });
 });
+    // describe('Test Riak 2i\'s and Riak Search', function(){
+
+
+    //     describe('Riak Search w/ core client', function(){
+    //         it("riak.objects.search('test', { q: 'field:been' }, null, function(err, obj))", function(pass) {
+    //             var solr_q = {
+    //                 q: 'field1:been'
+    //             };
+
+    //             riak.objects.search('test', { q: 'field:been' }, null, function(err, obj) {
+    //                 should.not.exist(null);
+    //                 obj.data.should.have.property('response');
+    //                 obj.data.response.should.have.property('docs').with.lengthOf(5);
+    //                 pass();
+    //             });
+    //         });
+
+    //         it("riak.objects.search('test', { q: 'not_a_field:whatever' }, null, function(err, obj))", function(pass) {
+    //             var solr_q = {
+    //                 q: 'not_a_field:whatever'
+    //             };
+
+    //             riak.objects.search('test', solr_q, null, function(err, obj) {
+    //                 should.not.exist(null);
+    //                 obj.data.should.have.property('response');
+    //                 obj.data.response.should.have.property('docs').with.lengthOf(0);
+    //                 pass();
+    //             });
+    //         });
+    //     });
+
+    //     describe('Riak Search w/ Bucket instance', function(){
+    //         it('"q=value:been" should return 5 RObjects', function(pass) {
+    //             pass();
+    //         });
+
+    //         it('"q=not_a_field:whatever" should return 0 RObjects', function(pass) {
+    //             pass();
+    //         });
+    //     });
+
+    //     describe('2i\'s w/ core client', function() {
+    //         it('should find 5 results for an exact match of 37 in the numbers_int index', function(pass) {
+
+    //         });
+
+    //         it('should find 5 results for a range match of 35 to 38 in the numbers_int index', function(pass) {
+
+    //         });
+
+    //         it('should find 0 results for an exact match of 1001 in the numbers_int index', function(pass) {
+
+    //         });
+
+    //         it('should find 0 results for an range match of 1001 to 1500 in the numbers_int index', function(pass) {
+
+    //         });
+
+    //         it('should find 5 results for an exact match of "that" in the strings_bin index', function(pass) {
+
+    //         });
+
+    //         it('should find 5 results for a range match of "r" to "z" in the strings_bin index', function(pass) {
+
+    //         });
+
+    //         it('should find 0 results for an exact match of 1001 in the numbers_int index', function(pass) {
+
+    //         });
+
+    //         it('should find 0 results for an range match of 1001 to 1500 in the numbers_int index', function(pass) {
+
+    //         });
+    //     });
+
+
+    //     // after(function(pass) { // teardown pre-test setup.
+    //     //     riak.buckets.list(function(err, buckets) {
+    //     //         async.map(buckets,
+    //     //             function(bucket, _intermediate) {
+    //     //                 bucket.objects.all(function(err, r_objs){
+    //     //                     bucket.objects.delete(r_objs, function(err, result) {
+    //     //                         _intermediate(err, result);
+    //     //                     });
+    //     //                 });
+    //     //             },
+    //     //             function(err, results) {
+    //     //                 if(err) throw new Error(err.toString());
+    //     //                 else pass();                
+    //     //             }
+    //     //         );
+    //     //     });
+    //     // });
+    // });
+
