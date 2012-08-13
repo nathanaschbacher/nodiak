@@ -13,7 +13,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git@bitbucket.org:coradine/tools-node_modules-nodiak.git"
+        "url": "git://github.com/Coradine/nodiak.git"
     },
     "dependencies": {
         "deepmerge": ">=0.2.5",
