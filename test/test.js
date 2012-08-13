@@ -237,7 +237,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform solr search on indexed bucket", function(pass) {
-            riak.bucket.search('test', { q: 'field:been' }, null, function(err, obj) {
+            riak.bucket.search('test', { q: 'field1:been' }, null, function(err, obj) {
                 should.not.exist(null);
                 obj.data.should.have.property('response');
                 obj.data.response.should.have.property('numFound', 5);
