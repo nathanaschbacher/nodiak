@@ -136,7 +136,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to list all keys in a bucket", function(done) {
             riak.bucket.keys('test', function(err, keys) {
                 should.not.exist(err);
-                if(keys !== null) {
+                if(keys !== undefined) {
                     keys.should.be.an.instanceOf(Array);
                 }
                 else {
