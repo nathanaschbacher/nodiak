@@ -24,13 +24,13 @@ The suite expects to find Riak on an HTTP interface on port 8091 and an HTTPS in
 
 1. Complete this README.
 
-2. Improve concurrency control to allow use of keep-alive connections.
+~~2. Improve concurrency control to allow use of keep-alive connections.~~
 
-3. Improve handling of chunked responses.
+~~3. Improve handling of chunked responses.~~
 
-4. Improve streaming of data to Riak on queries.
+~~4. Improve streaming of data to Riak on queries.~~
 
-5. Add Map Reduce phase management.
+~~5. Add Map Reduce phase management.~~
 
 6. Add Link parsing and Link-Walking interfaces.
 
