@@ -2,10 +2,38 @@
 
 Nodiak is a node.js client to [the Riak distributed database](http://basho.com/products/riak-overview/).  The focus of Nodiak is to provide a client that mimics some of the patterns and functionality of Basho's official clients for other languages while still taking advantage of the benefits of asynchronous patterns that can be easily implemented in node.js.
 
+Nodiak's API is broken into two general concepts.  The core client, which handles the base Riak HTTP API operations, and then some higher-level abstractions (Bucket and RObject).
+
+When using Bucket and RObject you'll get additional sugar for interacting with Riak. Such as:
+
+- Bulk/batch operations.
+- Sibling conflict resultion (including a client-side LWW by default).
+- Convenience methods for working with 2i's (secondary indexes)  
+- Object awareness (self-delete, self-save, etc.)
+
+Nodiak is designed to be fully functional using just the core client methods, but the Bucket and RObject abstractions are there to make your life a little easier.
+
+*NOTE:* it is highly recommended, if you're going to use Bucket and RObject, to at least get your Bucket instances from the core client's ```bucket.get()``` factory method.  
+
+# Features
+
+- HTTP and HTTPS connections.
+- Standard bucket and object operations.
+- Bulk/Batch operations.
+- Sibling resolution and auto-resolution support. 
+- Streamed response handling.
+- Riak Search and Riak 2i support.
+- MapReduce phase chaining.
+- Ad-hoc Javascript and Erlang MapReduce functions.
+- Easy to use with multiple clusters within the same app.
 
 # Installation
 
     $ npm install nodiak
+
+# Examples
+
+# API
 
 # Tests
 
@@ -15,10 +43,6 @@ The test suite can be run by simply:
     $ npm test
 
 The suite expects to find Riak on an HTTP interface on port 8091 and an HTTPS interface on port 8071.  You can edit these values at the top of the `test/test.js` file to suit your environment.
-
-# Examples
-
-# API
 
 #Todos
 
