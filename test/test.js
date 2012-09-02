@@ -23,8 +23,8 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 describe("Nodiak Riak Client Test Suite", function() {
-    var riak = require('../../nodiak').getClient('localhost', '8091', 'http');
-    var riaks = require('../../nodiak').getClient('localhost', '8071', 'https');
+    var riak = require('../../nodiak').getClient('http', 'localhost', '8091');
+    var riaks = require('../../nodiak').getClient('https', 'localhost', '8071');
     
     var async = require('async');
     var should = require('should');
