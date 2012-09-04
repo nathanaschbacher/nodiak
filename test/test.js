@@ -67,7 +67,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to ping the cluster via HTTP", function(done) {
             riak.ping(function(err, response) {
                 should.not.exist(err);
-                response.data.should.equal("OK");
+                response.should.equal("OK");
                 done();
             });
         });
@@ -75,7 +75,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to ping the cluster via HTTPS", function(done) {
             riaks.ping(function(err, response) {
                 should.not.exist(err);
-                response.data.should.equal("OK");
+                response.should.equal("OK");
                 done();
             });
         });
@@ -83,7 +83,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to get stats via HTTP", function(done) {
             riak.stats(function(err, response) {
                 should.not.exist(err);
-                response.data.should.be.a('object');
+                response.should.be.a('object');
                 done();
             });
         });
@@ -91,7 +91,23 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to get stats via HTTPS", function(done) {
             riaks.stats(function(err, response) {
                 should.not.exist(err);
-                response.data.should.be.a('object');
+                response.should.be.a('object');
+                done();
+            });
+        });
+
+        it("should be able to list resources via HTTP", function(done) {
+            riak.resources(function(err, response) {
+                should.not.exist(err);
+                response.should.be.a('object');
+                done();
+            });
+        });
+
+        it("should be able to list resources via HTTPS", function(done) {
+            riaks.resources(function(err, response) {
+                should.not.exist(err);
+                response.should.be.a('object');
                 done();
             });
         });
