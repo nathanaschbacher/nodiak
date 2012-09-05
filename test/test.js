@@ -33,7 +33,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         riak.ping(function(err, response) {
             if(err) throw new Error(err.toString());
             else {
-                riak.bucket.save('test', {"precommit":[{"mod":"riak_search_kv_hook","fun":"precommit"}]}, function(err, result) {
+                riak._bucket.save('test', {"precommit":[{"mod":"riak_search_kv_hook","fun":"precommit"}]}, function(err, result) {
                     if(err) throw new Error(err.toString());
                     else {
                         var data = { field1: "has been set" };
@@ -46,7 +46,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                         };
                         var created = [];
                         for(var i = 1; i <= 5; i++) {
-                            riak.object.save('test', null, data, metadata, function(err, obj) {
+                            riak._object.save('test', null, data, metadata, function(err, obj) {
                                 if(err) throw new Error(err.toString());
                                 else {
                                     created.push(obj);
@@ -115,7 +115,7 @@ describe("Nodiak Riak Client Test Suite", function() {
 
     describe("Using the base client to interact with buckets", function() {
         it("should be able to read bucket properties", function(done) {
-            riak.bucket.props('random_bucket', function(err, props) {
+            riak._bucket.props('random_bucket', function(err, props) {
                 should.not.exist(err);
                 props.should.be.a('object').and.have.property('name', 'random_bucket');
                 done();
@@ -123,16 +123,16 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to save properties to a bucket", function(done) {
-            riak.bucket.props('random_bucket', function(err, props) {
+            riak._bucket.props('random_bucket', function(err, props) {
                 should.not.exist(err);
 
                 var toggled = props.allow_mult ? false : true;
                 props.allow_mult = toggled;
 
-                riak.bucket.save('random_bucket', props, function(err, response) {
+                riak._bucket.save('random_bucket', props, function(err, response) {
                     should.not.exist(err);
                     
-                    riak.bucket.props('random_bucket', function(err, props) {
+                    riak._bucket.props('random_bucket', function(err, props) {
                         should.not.exist(err);
                         props.allow_mult.should.equal(toggled);
                         done();
@@ -142,7 +142,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to list all buckets", function(done) {
-            riak.buckets.list(function(err, buckets) {
+            riak._bucket.list(function(err, buckets) {
                 should.not.exist(err);
                 buckets.should.be.an.instanceOf(Array);
                 done();
@@ -150,28 +150,34 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to list all keys in a bucket", function(done) {
-            riak.bucket.keys('test', function(err, keys) {
+            riak._bucket.keys('test', function(err, keys) {
                 should.not.exist(err);
-                if(keys !== undefined) {
-                    keys.should.be.an.instanceOf(Array);
-                }
-                else {
+
+                keys.on('data', function(data) {
+                    data.should.be.an.instanceOf(Array);
+                });
+
+                keys.on('end', function(metadata) {
                     done();
-                }
+                });
+
+                keys.on('error', function(err) {
+                    should.not.exist(err);
+                });
             });
         });
     });
 
     describe("Using the base client to interact with objects", function() {
         it("should be able to check existence of object", function(done) {
-            riak.object.save('test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
+            riak._object.save('test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
                 should.not.exist(err);
 
-                riak.object.exists('test', 'this_ol_key', function(err, exists) {
+                riak._object.exists('test', 'this_ol_key', function(err, exists) {
                     should.not.exist(err);
                     exists.should.be.true;
 
-                    riak.object.exists('test', 'no_key_here', function(err, exists) {
+                    riak._object.exists('test', 'no_key_here', function(err, exists) {
                         should.not.exist(err);
                         exists.should.be.false;
                         done();
@@ -181,7 +187,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to save an object", function(done) {
-            riak.object.save('test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
+            riak._object.save('test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
                 should.not.exist(err);
                 obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                 obj.should.be.a('object').and.have.property('data');
@@ -191,7 +197,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to get an object", function(done) {
-            riak.object.get('test', 'this_ol_key', function(err, obj) {
+            riak._object.get('test', 'this_ol_key', function(err, obj) {
                 should.not.exist(err);
                 obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                 obj.should.be.a('object').and.have.property('data');
@@ -202,7 +208,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to delete an object", function(done) {
-            riak.object.delete('test', 'this_ol_key', function(err, obj) {
+            riak._object.delete('test', 'this_ol_key', function(err, obj) {
                 should.not.exist(err);
                 obj.metadata.status_code.should.equal(204);
                 done();
@@ -210,22 +216,22 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to get sibling vtags when siblings exist", function(done) {
-            riak.bucket.save('siblings_test', { allow_mult: true }, function(err, response) {
+            riak._bucket.save('siblings_test', { allow_mult: true }, function(err, response) {
                 should.not.exist(err);
 
-                riak.object.save('siblings_test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
+                riak._object.save('siblings_test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
                     should.not.exist(err);
                     obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                     obj.should.be.a('object').and.have.property('data');
                     obj.data.should.eql({ "pointless": "data" });
                 
-                    riak.object.save('siblings_test', 'this_ol_key', { "pointless": "sibling" }, null, function(err, obj) {
+                    riak._object.save('siblings_test', 'this_ol_key', { "pointless": "sibling" }, null, function(err, obj) {
                         should.not.exist(err);
                         obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                         obj.should.be.a('object').and.have.property('data');
                         obj.data.should.eql({ "pointless": "sibling" });
 
-                        riak.object.get('siblings_test', 'this_ol_key', function(err, obj) {
+                        riak._object.get('siblings_test', 'this_ol_key', function(err, obj) {
                             should.not.exist(err);
                             obj.should.be.a('object').and.have.property('siblings');
                             obj.siblings.should.be.an.instanceof(Array);
@@ -241,7 +247,7 @@ describe("Nodiak Riak Client Test Suite", function() {
 
     describe("Using the core client to perform searches", function() {
         it("should be able to perform ranged integer 2i searches", function(done) {
-            riak.bucket.search('test', [0,10000], 'numbers_int', function(err, keys) {
+            riak._bucket.search('test', [0,10000], 'numbers_int', function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(25);
                 done();
@@ -249,7 +255,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform exact match integer 2i searches", function(done) {
-            riak.bucket.search('test', 1000, 'numbers_int', function(err, keys) {
+            riak._bucket.search('test', 1000, 'numbers_int', function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(5);
                 done();
@@ -257,7 +263,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform ranged binary 2i searches", function(done) {
-            riak.bucket.search('test', ['a','zzzzzzzzzzz'], 'strings_bin', function(err, keys) {
+            riak._bucket.search('test', ['a','zzzzzzzzzzz'], 'strings_bin', function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(20);
                 done();
@@ -265,7 +271,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform exact match binary 2i searches", function(done) {
-            riak.bucket.search('test', 'that', 'strings_bin', function(err, keys) {
+            riak._bucket.search('test', 'that', 'strings_bin', function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(5);
                 done();
@@ -273,7 +279,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform solr search on indexed bucket", function(done) {
-            riak.bucket.search('test', { q: 'field1:been' }, null, function(err, obj) {
+            riak._bucket.search('test', { q: 'field1:been' }, null, function(err, obj) {
                 should.not.exist(null);
                 obj.data.should.have.property('response');
                 obj.data.response.should.have.property('numFound', 5);
@@ -283,9 +289,61 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
     });
 
+    describe("Performing MapReduce queries", function() {
+        it("should be able to handle streamed results", function(done) {
+            riak.mapred.inputs('test')
+                .map({
+                    language: 'erlang',
+                    module: 'riak_kv_mapreduce',
+                    function: 'map_object_value',
+                    arg: 'filter_notfound'})
+                .reduce({
+                    language: 'erlang',
+                    module: 'riak_kv_mapreduce',
+                    function: 'reduce_count_inputs'})     
+                .execute({chunked: true}, function(err, results) {
+                    results.on('data', function(result) {
+                        result.should.be.a('object');
+                        result.data.should.be.an.instanceOf(Array);
+                        result.data[0].should.equal(6);
+                    });
+
+                    results.on('end', function(metadata) {
+                        done();
+                    });
+
+                    results.on('error', function(err) {
+                        should.not.exist(err);
+                    });
+                }
+            );
+        });
+
+        it("should be able to handle non-streamed results", function(done) {
+             riak.mapred.inputs('test')
+                .map({
+                    language: 'erlang',
+                    module: 'riak_kv_mapreduce',
+                    function: 'map_object_value',
+                    arg: 'filter_notfound'})
+                .reduce({
+                    language: 'erlang',
+                    module: 'riak_kv_mapreduce',
+                    function: 'reduce_count_inputs'})     
+                .execute(function(err, result) {
+                    should.not.exist(err);
+                    result.should.be.a('object');
+                    result.data.should.be.an.instanceOf(Array);
+                    result.data[0].should.equal(6);
+                    done();
+                }
+            );
+        });
+    });
+
     describe("Using the 'Bucket' class to interact with buckets and objects", function() {
         it("should be able to get a Bucket instance from the core client", function(done) {
-            var bucket = riak.bucket.get('some_bucket');
+            var bucket = riak._bucket.get('some_bucket');
 
             bucket.should.have.property('constructor');
             bucket.constructor.should.have.property('name', 'Bucket');
@@ -294,7 +352,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to fetch props from Riak", function(done) {
-            var bucket = riak.bucket.get('test');
+            var bucket = riak._bucket.get('test');
 
             bucket.fetchProps(function(err, props) {
                 should.not.exist(err);
@@ -308,28 +366,20 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to save its props to Riak", function(done) {
-            var bucket = riak.bucket.get('test');
+            var bucket = riak._bucket.get('test');
 
-            bucket.props.n_val = 1;
             bucket.props.last_write_wins = true;
 
             bucket.save(function(err, saved) {
                 should.not.exist(err);
 
-                bucket.props.should.have.property('n_val', 1);
-                bucket.props.n_val.should.equal(saved.props.n_val);
-
                 bucket.props.should.have.property('last_write_wins', true);
                 bucket.props.last_write_wins.should.equal(saved.props.last_write_wins);
 
-                bucket.props.n_val = 3;
                 bucket.props.last_write_wins = false;
 
                 bucket.save(function(err, saved) {
                     should.not.exist(err);
-
-                    bucket.props.should.have.property('n_val', 3);
-                    bucket.props.n_val.should.equal(saved.props.n_val);
 
                     bucket.props.should.have.property('last_write_wins', false);
                     bucket.props.last_write_wins.should.equal(saved.props.last_write_wins);
@@ -346,7 +396,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         function delete_all(done) {
             async.parallel([
                 function(next) {
-                    var bucket = riak.bucket.get('test');
+                    var bucket = riak._bucket.get('test');
                     bucket.objects.all(function(err, r_objs) {
                         bucket.objects.delete(r_objs, function(err, result) {
                             next(err, result);
@@ -354,7 +404,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                     });
                 },
                 function(next) {
-                    var bucket = riak.bucket.get('siblings_test');
+                    var bucket = riak._bucket.get('siblings_test');
                     bucket.objects.all(function(err, r_objs) {
                         bucket.objects.delete(r_objs, function(err, result) {
                             next(err, result);
