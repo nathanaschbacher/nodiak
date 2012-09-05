@@ -245,7 +245,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
     });
 
-    describe("Using the core client to perform searches", function() {
+    describe("Using the base client to perform searches", function() {
         it("should be able to perform ranged integer 2i searches", function(done) {
             riak._bucket.search('test', [0,10000], 'numbers_int', function(err, keys) {
                 should.not.exist(err);
@@ -342,8 +342,8 @@ describe("Nodiak Riak Client Test Suite", function() {
     });
 
     describe("Using the 'Bucket' class to interact with buckets and objects", function() {
-        it("should be able to get a Bucket instance from the core client", function(done) {
-            var bucket = riak._bucket.get('some_bucket');
+        it("should be able to get a Bucket instance from the base client", function(done) {
+            var bucket = riak.bucket('some_bucket');
 
             bucket.should.have.property('constructor');
             bucket.constructor.should.have.property('name', 'Bucket');
@@ -354,7 +354,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to fetch props from Riak", function(done) {
             var bucket = riak._bucket.get('test');
 
-            bucket.fetchProps(function(err, props) {
+            bucket.getProps(function(err, props) {
                 should.not.exist(err);
 
                 props.should.have.property('name');
@@ -370,7 +370,7 @@ describe("Nodiak Riak Client Test Suite", function() {
 
             bucket.props.last_write_wins = true;
 
-            bucket.save(function(err, saved) {
+            bucket.saveProps(function(err, saved) {
                 should.not.exist(err);
 
                 bucket.props.should.have.property('last_write_wins', true);
@@ -378,7 +378,7 @@ describe("Nodiak Riak Client Test Suite", function() {
 
                 bucket.props.last_write_wins = false;
 
-                bucket.save(function(err, saved) {
+                bucket.saveProps(function(err, saved) {
                     should.not.exist(err);
 
                     bucket.props.should.have.property('last_write_wins', false);
