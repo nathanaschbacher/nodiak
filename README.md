@@ -2,7 +2,7 @@
 
 Nodiak is a node.js client to [the Riak distributed database](http://basho.com/products/riak-overview/).  The focus of Nodiak is to provide a client that mimics some of the patterns and functionality of Basho's official clients for other languages while still taking advantage of the benefits of asynchronous patterns that can be easily implemented in node.js.
 
-Nodiak's API is broken into two general concepts.  The base client, which handles the base Riak HTTP API operations, and useful higher-level abstractions (Bucket and RObject) that build on the base client functionality to make Riak easier to work with.
+Nodiak's design is split across two general concepts.  The base client, which handles the base Riak HTTP API operations, and useful higher-level abstractions (Bucket and RObject) that build on the base client functionality to make Riak easier to work with.
 
 > ***NOTE:*** While the base client's methods are available in the event you need them. The _bucket and _object namespace won't be detailed in this document because you should use the convience classes and abstratctions whenever possible. 
 
@@ -34,21 +34,21 @@ The `result` varies depending on the API call.  See the documentation below for 
  
 ###**require('nodiak').getClient**( _[backend], [host], [port], [defaults]_ );
 
-```
+```javascript
 // defaults to HTTP backend on localhost:8098
 
 var riak = require('nodiak').getClient();
 ```
 or
 
-```
+```javascript
 // uses HTTPS backend on 10.0.0.2:8443
 
 var riak = require('nodiak').getClient('https', '10.0.0.2', 8443);
 ```
 or
 
-```
+```javascript
 // With non-default client settings, such as resource locations, 
 // maxSockets value, mime decoders/encoders, etc.
 
@@ -66,7 +66,7 @@ var riak = require('nodiak').getClient('https', my_defaults);
 ```
 For multiple-clusters just create several instances
 
-```
+```javascript
 // All the relevant settings and helpers are attached to the instances
 // so you don't have to worry about clobbering them across clients.
 
@@ -77,7 +77,7 @@ var db = require('nodiak').getClient();
 ##Cluster info and status:
 ###.ping( _callback_ );
 
-```
+```javascript
 // Check that you can reach Riak
 
 riak.ping(function(err, response) {
@@ -90,7 +90,7 @@ riak.ping(function(err, response) {
 
 ###.stats( _callback_ );
 
-```
+```javascript
 // Get current stats from Riak
 
 riak.stats(function(err, response) {
@@ -105,7 +105,7 @@ riak.stats(function(err, response) {
 > ```
 
 ###.resources( _callback_ );
-```
+```javascript
 // Ask Riak for its current resource endpoints.
 // NOTE: These are what your Riak install is using, not necessarily what the
 //       nodiak client is using.  If you want to synchronize these values, you'll
@@ -129,7 +129,7 @@ riak.resources(function(err, response) {
 ## Bucket Operations:
 ###client.bucket( _name_ );
 
-```
+```javascript
 // Returns and instance of a Bucket object.
 
 var user_bucket = riak.bucket('users');
@@ -137,9 +137,13 @@ user_bucket.objects.all(function(err, r_objs) {
     console.log(r_objs);
 });
 ```
-```
-// The Bucket object also allows for simple chaining patterns.
+>```
+[[Object], [Object], [Object]]  // Array of RObjects
+>```
 
+The Bucket object also allows for simple chaining patterns.
+
+```javascript
 riak.bucket('users').objects.all(function(err, r_objs) {
     console.log(r_objs);
 });
@@ -150,7 +154,7 @@ riak.bucket('users').objects.all(function(err, r_objs) {
 
 ###Bucket.getProps( _callback_ );
 
-```
+```javascript
 // Update the Bucket instance with its bucket props from Riak
 var user_bucket = riak.bucket('users');
 
@@ -168,7 +172,7 @@ user_bucket.getProps(function(err, props) {
 
 ###Bucket.saveProps( _[merge], callback_ );
 
-```
+```javascript
 // Save updated bucket properties back to Riak.
 var users = riak.bucket('users');
 
