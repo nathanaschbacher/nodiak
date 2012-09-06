@@ -148,7 +148,7 @@ riak.bucket('users').objects.all(function(err, r_objs) {
 [[Object], [Object], [Object]]  // Array of RObjects
 >```
 
-###Bucket.getProps( _callback_ );
+###Bucket.getProps( _[callback]_ );
 ######// update the Bucket instance with its bucket props from Riak
 
 ```javascript
@@ -167,7 +167,7 @@ user_bucket.getProps(function(err, props) {
   ... }
 >```
 
-###Bucket.saveProps( _[merge], callback_ );
+###Bucket.saveProps( _[merge], [callback]_ );
 ######// Save updated bucket properties back to Riak.
 
 ```javascript
