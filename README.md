@@ -299,7 +299,7 @@ For ad-hoc Erlang functions to work in Riak you have to add `{allow_strfun, true
 
 ######MapReduce w/ pre-aggregated results.
 
-```
+```javascript
 riak.mapred.inputs([['a_bucket','key1'], ['b_bucket','key2']])
     .map({
         language: 'erlang',
@@ -320,7 +320,7 @@ riak.mapred.inputs([['a_bucket','key1'], ['b_bucket','key2']])
 
 ######MapReduce w/ streaming results by setting option `{ chunked: true }` on `execute`.
 
-```
+```javascript
 var compiled_results = [];
 
 riak.mapred.inputs('test')
