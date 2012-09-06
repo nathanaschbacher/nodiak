@@ -4,7 +4,9 @@ Nodiak is a node.js client to [the Riak distributed database](http://basho.com/p
 
 Nodiak's design is split across two general concepts.  The base client, which handles the base Riak HTTP API operations, and useful higher-level abstractions (Bucket and RObject) that build on the base client functionality to make Riak easier to work with.
 
-> ***NOTE:*** While the base client's methods are available in the event you need them. The _bucket and _object namespace won't be detailed in this document because you should use the convience classes and abstratctions whenever possible. 
+> ***NOTE:*** 
+
+>While the base client's methods are available in the event you need them. The \_bucket and \_object namespace won't be detailed in this document because you should use the convience classes and abstratctions whenever possible.
 
 # Features
 
@@ -30,28 +32,24 @@ The argument signature of the callback is always `callback(error, result)`.  Whe
 
 The `result` varies depending on the API call.  See the documentation below for details.
 
-##Getting Client Instance
+##Getting Started
  
 ###**require('nodiak').getClient**( _[backend], [host], [port], [defaults]_ );
+######// get client instance (defaults to HTTP backend on localhost:8098)
 
 ```javascript
-// defaults to HTTP backend on localhost:8098
-
 var riak = require('nodiak').getClient();
 ```
-or
+
+w/ custom backend, host, and port:
 
 ```javascript
-// uses HTTPS backend on 10.0.0.2:8443
-
 var riak = require('nodiak').getClient('https', '10.0.0.2', 8443);
 ```
-or
+
+w/ non-default client settings, such as resource locations, maxSockets value, mime decoders/encoders, etc:
 
 ```javascript
-// With non-default client settings, such as resource locations, 
-// maxSockets value, mime decoders/encoders, etc.
-
 var my_defaults = {
 	connection: { maxSockets: 50 },
 	resources: {
@@ -64,22 +62,20 @@ var my_defaults = {
 // the 'defaults' object should always be the last.
 var riak = require('nodiak').getClient('https', my_defaults); 
 ```
-For multiple-clusters just create several instances
+
+For multiple-clusters just create several instances:
 
 ```javascript
-// All the relevant settings and helpers are attached to the instances
-// so you don't have to worry about clobbering them across clients.
-
 var cache = require('nodiak').getClient('https', '10.0.0.2', 8443);
 var sessions = require('nodiak').getClient('http', '192.168.2.20', 8098);
 var db = require('nodiak').getClient();
 ```
+
 ##Cluster info and status:
 ###.ping( _callback_ );
+######// check that you can reach Riak
 
 ```javascript
-// Check that you can reach Riak
-
 riak.ping(function(err, response) {
 	console.log(response);
 });
@@ -89,10 +85,9 @@ riak.ping(function(err, response) {
 > ```
 
 ###.stats( _callback_ );
+######// get current stats from Riak
 
 ```javascript
-// Get current stats from Riak
-
 riak.stats(function(err, response) {
 	console.log(response); // prints the stats provided by the 'riak_kv_wm_stats' resource.
 });
@@ -105,13 +100,15 @@ riak.stats(function(err, response) {
 > ```
 
 ###.resources( _callback_ );
-```javascript
-// Ask Riak for its current resource endpoints.
-// NOTE: These are what your Riak install is using, not necessarily what the
-//       nodiak client is using.  If you want to synchronize these values, you'll
-//       have to manage that yourself.  getClient() -> .resources(result) ->
-//       getClient(result), or something similar. 
+######// ask Riak for its current resource endpoints.
+> ***NOTE:*** 
 
+>These are what your Riak install is using, not necessarily what the
+nodiak client is using.  If you want to synchronize these values, you'll
+have to manage that yourself.  getClient() -> .resources(result) ->
+getClient(result), or something similar. 
+
+```javascript
 riak.resources(function(err, response) {
 	console.log(response);
 });
@@ -128,10 +125,9 @@ riak.resources(function(err, response) {
 
 ## Bucket Operations:
 ###client.bucket( _name_ );
+######// Returns and instance of a Bucket object.
 
 ```javascript
-// Returns and instance of a Bucket object.
-
 var user_bucket = riak.bucket('users');
 user_bucket.objects.all(function(err, r_objs) {
     console.log(r_objs);
@@ -141,7 +137,7 @@ user_bucket.objects.all(function(err, r_objs) {
 [[Object], [Object], [Object]]  // Array of RObjects
 >```
 
-The Bucket object also allows for simple chaining patterns.
+w/ a simple chaining pattern:
 
 ```javascript
 riak.bucket('users').objects.all(function(err, r_objs) {
@@ -153,15 +149,16 @@ riak.bucket('users').objects.all(function(err, r_objs) {
 >```
 
 ###Bucket.getProps( _callback_ );
+######// update the Bucket instance with its bucket props from Riak
 
 ```javascript
-// Update the Bucket instance with its bucket props from Riak
 var user_bucket = riak.bucket('users');
 
 user_bucket.getProps(function(err, props) {
 	console.log(users.props);
 });
 ```
+
 >```
 { name: 'users',
   allow_mult: false,
@@ -171,9 +168,9 @@ user_bucket.getProps(function(err, props) {
 >```
 
 ###Bucket.saveProps( _[merge], callback_ );
+######// Save updated bucket properties back to Riak.
 
 ```javascript
-// Save updated bucket properties back to Riak.
 var users = riak.bucket('users');
 
 users.props.n_val = 2;
@@ -184,6 +181,7 @@ users.saveProps(true, function(err, props) {
 	console.log(users.props);
 });
 ```
+
 >```
 { name: 'users',
   allow_mult: true,
@@ -197,18 +195,76 @@ The optional `merge` argument is a boolean indicating wether to first get the bu
 ###Bucket.object.new( _key, [data], [metadata]_ )
 ###Bucket.object.exists( _key, callback_ )
 ###Bucket.objects.get( _keys, [options], [resolver_fn], callback_ )
-###Bucket.objects.save(_ r_objects, callback_)
-###Bucket.objects.delete( _r_objects, callback_ )
+###Bucket.objects.save( _r_objects, [callback]_)
+###Bucket.objects.delete( _r_objects, [callback]_ )
 ###Bucket.prototype.objects.all( _callback_ )
 
 ##RObject Operations
 ###RObject.save( _[callback]_ )
 ###RObject.delete( _[callback]_ )
+###RObject.fetch( _[auto_resolver_fn], callback_ )
 ###RObject.addMeta( name, value )
 ###RObject.removeMeta( name )
 ###RObject.addToIndex( name, value )
 ###RObject.removeFromIndex( name, value )
 ###RObject.clearIndex( name )
+
+##Sibling Auto-Resolution
+
+By default nodiak's Bucket class contains a client-side implementation of Last-Write-Wins for managing resolution.  It takes an array of sibling RObjects and returns the resolved sibling.  Implemented as follows:
+
+```javascript
+Bucket.siblingLastWriteWins = function(siblings) {
+    function siblingLastModifiedSort(a, b) {
+        if(!a.metadata.last_modified || new Date(a.metadata.last_modified) < new Date(b.metadata.last_modified)) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+    }
+    siblings.sort(siblingLastModifiedSort);
+
+    return siblings[0];
+};
+```
+
+The returned object then has the original set of siblings attached to it and is sent up to the user through a callback on the original `get` or `fetch` request.  This is true of bulk/batch operations as well.  Each RObject in the batch will be its resolved version with ***all*** its original siblings attached on a `.siblings` property.
+
+When you write your own auto-resolution functions they should conform to this spec, taking an `Array` of `RObjects` as input and returning a single resolved `RObject` as output.
+
+You can provide your own auto-resolution functions either by overriding a Bucket instance's default resolver, like:
+
+```javascript
+var my_bucket = riak.bucket('some_bucket');
+
+my_bucket.resolver = function(conflicted_siblings) { 
+    // If they don't shut-up you'll turn this car around!
+    var resolved = conflicted_siblings.pop();
+    
+    return resolved;
+};
+```
+
+and/or on every request for an object, like:
+
+
+```javascript
+var my_resolver = function(conflicted_siblings) { 
+    // If they don't shut-up you'll turn this car around!
+    var resolved = conflicted_siblings.pop();
+    
+    return resolved;
+};
+
+riak.bucket('some_bucket').object.get(['key1', 'key2'], my_resolver, function(err, r_objs) {
+    // Any RObject in the r_objs Array that had siblings will have been
+    // resolved using my_resolver, and will have it's originally siblings
+    // available through a .siblings property. 
+});
+```
+
+The RObject `.fetch()` method also accepts a user defined resolver function preceding the callback in its arguments list.  Check the RObject.fetch documentation above for details.
 
 ##Riak Search and Riak 2i's
 ###Bucket.search( _query, [index], callback_ );
@@ -229,27 +285,76 @@ The optional `merge` argument is a boolean indicating wether to first get the bu
 >```
 
 ##MapReduce
+
+MapReduce queries in nodiak are performed by chaining `map`, `link`, and `reduce` phases together on a set of `inputs` and then finally by running the chain using `execute`.
+
+Each of these phases, including the inputs conforms to the spec set forward by Basho in [their documentation](http://wiki.basho.com/Loading-Data-and-Running-MapReduce-Queries.html).
+
+Also, nodiak allows you supply your own ad-hoc native functions as the `source` parameter on your `map` and `reduce` phase specifications.  If your phase has `'language' : 'javascript'` set, then it will simply convert your function to it's string source representation before attaching it to the `source` parameter.
+
+For ad-hoc Erlang functions to work in Riak you have to add `{allow_strfun, true}` to the `riak_kv` section of your app.config files.  When send in a native Javascript function as the `source` parameter of your phase specification, and `'language' : 'erlang'` is set, then that native function must return from it a string representation of a valid Erlang MapReduce function. 
+
 ###client.mapred.inputs( _inputs_ )
-###Mapred.map( _phase_ )
-###Mapred.link( _phase_ )
-###Mapred.reduce( _phase_ )
-###Mapred.execute( _[options], callback_ )
-```
-// MapReduce w/ aggregated results.
+####.map( _phase_ ) .link( _phase_ ) .reduce( _phase_ )  .execute( _[options], callback_ )
+
+######MapReduce w/ pre-aggregated results.
 
 ```
->```
+riak.mapred.inputs([['a_bucket','key1'], ['b_bucket','key2']])
+    .map({
+        language: 'erlang',
+        module: 'riak_kv_mapreduce',
+        function: 'map_object_value',
+        arg: 'filter_notfound'})
+    
+    .reduce({
+        language: 'erlang',
+        module: 'riak_kv_mapreduce',
+        function: 'reduce_count_inputs'})     
+    
+    .execute(function(err, results) {
+        if(!err) console.log(results);
+    }
+);
+```
 
->```
+######MapReduce w/ streaming results by setting option `{ chunked: true }` on `execute`.
 
 ```
-// MapReduce w/ streaming results.
+var compiled_results = [];
+
+riak.mapred.inputs('test')
+    .map({
+        language: 'erlang',
+        module: 'riak_kv_mapreduce',
+        function: 'map_object_value',
+        arg: 'filter_notfound'})
+    
+    .reduce({
+        language: 'erlang',
+        module: 'riak_kv_mapreduce',
+        function: 'reduce_count_inputs'})     
+    
+    .execute({chunked: true}, function(err, results) {
+        results.on('data', function(result) {
+            compiled_results.push(result);
+        });
+
+        results.on('end', function(metadata) {
+            console.log(compiled_results);
+        });
+
+        results.on('error', function(err) {
+            // Handle this however you like.
+        });
+    }
+);
 
 ```
->```
 
->```
+>***NOTE:***
 
+>You can also pass an `Array` of `RObject`s into the `inputs` section of a MapReduce query.  Nodiak will automatically run through each object and convert the RObject into the `[bucket, key]` pairing that Riak expects.  Additionally, if you set `{ include_data: true }` in the 'options' object sent to the `execute` method, then nodiak will also include the RObject's data, like `[bucket, key, data]`.
 
 
 # Tests
@@ -263,7 +368,7 @@ The suite expects to find Riak on an HTTP interface on port 8091 and an HTTPS in
 
 #Todos
 
-1. Complete this README (getting closer).
+1. Complete this README (getting closer still).
 
 2. ~~Improve concurrency control to allow use of keep-alive connections.~~
 
