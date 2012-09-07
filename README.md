@@ -268,14 +268,6 @@ The RObject `.fetch()` method also accepts a user defined resolver function prec
 
 ##Riak Search and Riak 2i's
 
-By default nodiak will return the `response` portion of a Riak Search Solr result and the  
-
-or to convert the results sent back by Riak into instances of nodiak's `RObject` by immediately doing an `object.get` on the keys embedded in the result response.
-
-There are times this behavior may not be desirable, so both search methods allow for a flag to be optionally passed to tell nodiak to instead return simply the raw results from Riak.
-
-When `results_as_objects` is set to `false` on a 2i's query you'll get back an `Array` of just the keys matched in your search.
-
 ###Bucket.search.solr( _query, [results_as_robjs], callback_ );
 The `query` should be an `Object` containing properties that map to the URL query params specified in [Querying via the Solr Interface](http://wiki.basho.com/Riak-Search---Querying.html).  The `wt` parameter defaults to JSON.
 
