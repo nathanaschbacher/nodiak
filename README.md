@@ -267,22 +267,73 @@ riak.bucket('some_bucket').object.get(['key1', 'key2'], my_resolver, function(er
 The RObject `.fetch()` method also accepts a user defined resolver function preceding the callback in its arguments list.  Check the RObject.fetch documentation above for details.
 
 ##Riak Search and Riak 2i's
-###Bucket.search( _query, [index], callback_ );
+
+By default nodiak will return the `response` portion of a Riak Search Solr result and the  
+
+or to convert the results sent back by Riak into instances of nodiak's `RObject` by immediately doing an `object.get` on the keys embedded in the result response.
+
+There are times this behavior may not be desirable, so both search methods allow for a flag to be optionally passed to tell nodiak to instead return simply the raw results from Riak.
+
+When `results_as_objects` is set to `false` on a 2i's query you'll get back an `Array` of just the keys matched in your search.
+
+###Bucket.search.solr( _query, [results_as_robjs], callback_ );
+The `query` should be an `Object` containing properties that map to the URL query params specified in [Querying via the Solr Interface](http://wiki.basho.com/Riak-Search---Querying.html).  The `wt` parameter defaults to JSON.
+
+######// a Solr search that returns RObjects.
+
+```javascript
+var query = { 
+    q: 'field1:been', 
+    'q.op': 'and',
+    start: 25
+};
+
+riak.bucket('test').search.solr(query, true, function(err, response) {
+    console.log(response.docs); 
+    // will be an Array of RObjects because we set `results_as_robjs` to true.
+});
 ```
-// Search Bucket using Riak Search.
+
+By default nodiak will return simply the `response` portion of a Riak Search query result to the user:
+
+```javascript
+{
+    "numFound": 500,
+    "start": 0,
+    "maxScore": "0.353553",
+    "docs": [
+      {
+        "id": "11N5bxzLuoeLyIx3zsylIoY7uMx",
+        "index": "test",
+        "fields": {
+          "field1": "has been set"
+        },
+        "props": {}
+      },
+      ...
+    ]
+}
+```
+
+By passing in `true` to the optional `results_as_robjs` parameter, nodiak will automatically parse the `docs` element, fetch the key values from Riak, and re-assign `docs` to be the resulting `Array` of `RObjects`.  This is defaulted to `false` for performance reasons.  If your query matches a lot of results, then it can take a long time to fetch all the RObjects fom Riak.  However, if you know your query results are well bounded, then setting it to `true` is convenient.
+
+###Bucket.search.twoi( _query, index, [results_as_robjs], callback_ );
+
+The query format in nodiak for a 2i's search is an `Array` tuple containing the beginning and end of the range you want to search `['a','zzzzzzzzz']`, or just a scalar value when you want to do an exact match `'match_this'`.
+
+You do not need to provide the `_int` or `_bin` suffix to the `index` name.  This is derived for you from the type of data you pass in to your query.  If the type is a `String` then `_bin` will be used, otherwise `_int` will be automatically assumed. 
+
+######// a 2i's range query that returns the list of matching keys.
+
+```javascript
+riak.bucket('test').search.twoi([0,10000], 'my_numbers', function(err, response) {
+    console.log(response.results);
+    // will be an Array of the keys matched by the search.
+});
 
 ```
->```
 
->```
-
-```
-// Search Bucket using Riak 2i's.
-
-```
->```
-
->```
+The response will be an object with the format `{ numFound: 2, results: ['key1', 'key2'] }`.  However, the same rules apply here, about the optional `results_as_robjs` argument, as they did when doing a Solr search.  If you set `results_as_robjs` to `true`, then nodiak will replace the key list with an `Array` of `RObjects` fetched from Riak.
 
 ##MapReduce
 
@@ -297,7 +348,7 @@ For ad-hoc Erlang functions to work in Riak you have to add `{allow_strfun, true
 ###client.mapred.inputs( _inputs_ )
 ####.map( _phase_ ) .link( _phase_ ) .reduce( _phase_ )  .execute( _[options], callback_ )
 
-######MapReduce w/ pre-aggregated results.
+######// MapReduce w/ pre-aggregated results.
 
 ```javascript
 riak.mapred.inputs([['a_bucket','key1'], ['b_bucket','key2']])
@@ -318,7 +369,7 @@ riak.mapred.inputs([['a_bucket','key1'], ['b_bucket','key2']])
 );
 ```
 
-######MapReduce w/ streaming results by setting option `{ chunked: true }` on `execute`.
+######// MapReduce w/ streaming results by setting option `{ chunked: true }` on `execute`.
 
 ```javascript
 var compiled_results = [];
