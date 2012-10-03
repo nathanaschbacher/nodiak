@@ -150,14 +150,12 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to list all keys in a bucket", function(done) {
-            riak._bucket.keys('test', function(err, keys) {
-                should.not.exist(err);
-
+            riak._bucket.keys('test').stream(function(keys) {
                 keys.on('data', function(data) {
                     data.should.be.an.instanceOf(Array);
                 });
 
-                keys.on('end', function(metadata) {
+                keys.on('end', function() {
                     done();
                 });
 
@@ -219,13 +217,13 @@ describe("Nodiak Riak Client Test Suite", function() {
             riak._bucket.save('siblings_test', { allow_mult: true }, function(err, response) {
                 should.not.exist(err);
 
-                riak._object.save('siblings_test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
+                riak._object.save('siblings_test', 'this_ol_key', { "pointless": "data" }, { meta: "meta data goes here" }, function(err, obj) {
                     should.not.exist(err);
                     obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                     obj.should.be.a('object').and.have.property('data');
                     obj.data.should.eql({ "pointless": "data" });
                 
-                    riak._object.save('siblings_test', 'this_ol_key', { "pointless": "sibling" }, null, function(err, obj) {
+                    riak._object.save('siblings_test', 'this_ol_key', { "pointless": "sibling" }, { meta: "meta data goes EVERYWHERE" }, function(err, obj) {
                         should.not.exist(err);
                         obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                         obj.should.be.a('object').and.have.property('data');
@@ -301,14 +299,14 @@ describe("Nodiak Riak Client Test Suite", function() {
                     language: 'erlang',
                     module: 'riak_kv_mapreduce',
                     function: 'reduce_count_inputs'})     
-                .execute({chunked: true}, function(err, results) {
+                .execute().stream(function(results) {
                     results.on('data', function(result) {
                         result.should.be.a('object');
                         result.data.should.be.an.instanceOf(Array);
                         result.data[0].should.equal(101);
                     });
 
-                    results.on('end', function(metadata) {
+                    results.on('end', function() {
                         done();
                     });
 
@@ -388,87 +386,115 @@ describe("Nodiak Riak Client Test Suite", function() {
                 });
             });
         });
+
+        it("should be able to get RObject w/ siblings fetched as async requests for vtags", function(done) {
+            var bucket = riak.bucket('siblings_test');
+            bucket.objects.get('this_ol_key', function(err, obj) {
+                should.not.exist(err);
+                obj.constructor.name.should.eql('RObject');
+                obj.should.have.property('siblings');
+                obj.siblings.should.be.an.instanceOf(Array).with.lengthOf(2);
+                obj.siblings[0].constructor.name.should.eql('RObject');
+            });
+            done();
+        });
+        
+        it("should be able to get RObject w/ siblings as one request for multipart/mixed objects", function(done) {
+            var bucket = riak.bucket('siblings_test');
+            bucket.getSiblingsSync = true;
+            bucket.objects.get('this_ol_key', function(err, obj) {
+                should.not.exist(err);
+                obj.constructor.name.should.eql('RObject');
+                obj.should.have.property('siblings');
+                obj.siblings.should.be.an.instanceOf(Array).with.lengthOf(2);
+                obj.siblings[0].constructor.name.should.eql('RObject');
+            });
+            done();
+        });
     });
 
     describe("Using the 'Bucket' class to perform Solr and 2i's searches", function() {
-        it("should be able to perform ranged 2i searches, results as RObjects", function(done) {
-            riak.bucket('test').search.twoi([0,10000], 'numbers', true, function(err, response) {
-                should.not.exist(err);
-                response.should.have.property('results');
-                response.results.should.be.an.instanceOf(Array).with.lengthOf(100);
-
-                response.should.have.property('numFound');
-                response.numFound.should.eql(100);
-
-                response.results[0].constructor.name.should.eql('RObject');
-                done();
+        it("should be able to perform ranged 2i searches, stream results as RObjects", function(done) {
+            var all_results = [];
+            riak.bucket('test').search.twoi([0,10000], 'numbers').stream(function(response) {
+                response.on('data', function(r_obj) {
+                    r_obj.constructor.name.should.eql('RObject');
+                    all_results.push(r_obj);
+                });
+                response.on('error', function(err) {
+                    should.not.exist(err);
+                });
+                response.on('end', function() {
+                    all_results.length.should.eql(100);
+                    done();
+                });
             });
         });
 
         it("should be able to perform ranged 2i searches, results as keys", function(done) {
             riak.bucket('test').search.twoi([0,10000], 'numbers', function(err, response) {
                 should.not.exist(err);
-                response.should.have.property('results');
-                response.results.should.be.an.instanceOf(Array).with.lengthOf(100);
+                response.should.be.an.instanceOf(Array).with.lengthOf(100);
 
-                response.should.have.property('numFound');
-                response.numFound.should.eql(100);
-
-                response.results[0].constructor.name.should.eql('String');
+                response[0].constructor.name.should.eql('String');
                 done();
             });
         });
 
-        it("should be able to perform exact match 2i searches, results as RObjects", function(done) {
-            riak.bucket('test').search.twoi('that', 'strings', true, function(err, response) {
-                should.not.exist(err);
-                response.should.have.property('results');
-                response.results.should.be.an.instanceOf(Array).with.lengthOf(100);
-
-                response.should.have.property('numFound');
-                response.numFound.should.eql(100);
-
-                response.results[0].constructor.name.should.eql('RObject');
-                done();
+        it("should be able to perform exact match 2i searches, stream results as RObjects", function(done) {
+            var all_results = [];
+            riak.bucket('test').search.twoi('that', 'strings').stream(function(response) {
+                response.on('data', function(r_obj) {
+                    r_obj.constructor.name.should.eql('RObject');
+                    all_results.push(r_obj);
+                });
+                response.on('error', function(err) {
+                    should.not.exist(err);
+                });
+                response.on('end', function() {
+                    all_results.length.should.eql(100);
+                    done();
+                });
             });
         });
 
         it("should be able to perform exact match 2i searches, results as keys", function(done) {
             riak.bucket('test').search.twoi('that', 'strings', function(err, response) {
                 should.not.exist(err);
-                response.should.have.property('results');
-                response.results.should.be.an.instanceOf(Array).with.lengthOf(100);
+                response.should.be.an.instanceOf(Array).with.lengthOf(100);
 
-                response.should.have.property('numFound');
-                response.numFound.should.eql(100);
-
-                response.results[0].constructor.name.should.eql('String');
+                response[0].constructor.name.should.eql('String');
                 done();
             });
         });
 
-        it("should be able to perform Solr search on indexed bucket, results as RObjects", function(done) {
-            riak.bucket('test').search.solr({ q: 'field1:been' }, true, function(err, response) {
-                should.not.exist(err);
-                response.should.have.property('numFound');
-                response.numFound.should.eql(100);
-
-                response.should.have.property('docs');
-                response.docs.should.be.an.instanceOf(Array).with.lengthOf(10);
-                response.docs[0].constructor.name.should.eql('RObject');
-                done();
+        it("should be able to perform Solr search on indexed bucket, stream results as RObjects", function(done) {
+            var all_results = [];
+            riak.bucket('test').search.solr({ q: 'field1:been' }).stream(function(results) {
+                results.on('data', function(r_obj) {
+                    r_obj.constructor.name.should.eql('RObject');
+                    all_results.push(r_obj);
+                });
+                results.on('error', function(err) {
+                    should.not.exist(err);
+                });
+                results.on('end', function() {
+                    all_results.length.should.eql(10);
+                    done();
+                });
             });
         });
 
         it("should be able to perform Solr search on indexed bucket", function(done) {
-            riak.bucket('test').search.solr({ q: 'field1:been' }, function(err, response) {
+            riak.bucket('test').search.solr({ q: 'field1:been' }, function(err, results) {
                 should.not.exist(err);
-                response.should.have.property('numFound');
-                response.numFound.should.eql(100);
+                results.should.have.property('response');
+                results.response.should.have.property('numFound');
+                results.response.numFound.should.eql(100);
 
-                response.should.have.property('docs');
-                response.docs.should.be.an.instanceOf(Array).with.lengthOf(10);
-                response.docs[0].constructor.name.should.eql('Object');
+                results.response.should.have.property('docs');
+                results.response.docs.should.be.an.instanceOf(Array).with.lengthOf(10);
+                results.response.docs[0].constructor.name.should.eql('Object');
                 done();
             });
         });
@@ -477,28 +503,29 @@ describe("Nodiak Riak Client Test Suite", function() {
 
 
     after(function(done) { // teardown pre-test setup.
+        this.timeout(10000);
         function delete_all(done) {
             async.parallel([
                 function(next) {
-                    var bucket = riak._bucket.get('test');
+                    var bucket = riak.bucket('test');
                     bucket.objects.all(function(err, r_objs) {
                         bucket.objects.delete(r_objs, function(err, result) {
-                            next(err, result);
+                            next(null, result);
                         });
                     });
                 },
                 function(next) {
-                    var bucket = riak._bucket.get('siblings_test');
+                    var bucket = riak.bucket('siblings_test');
                     bucket.objects.all(function(err, r_objs) {
                         bucket.objects.delete(r_objs, function(err, result) {
-                            next(err, result);
+                            next(null, result);
                         });
                     });
                 }
             ],
             function(err, results){
-                if(err) throw new Error(err.toString());
-                else done();
+                if(err) throw err;
+                done();
             });
         }
 
