@@ -694,9 +694,8 @@ The query format in nodiak for a 2i's search is an `Array` tuple containing the 
 You do not need to provide the `_int` or `_bin` suffix to the `index` name.  This is derived for you from the type of data you pass in to your query.  If the type is explicitly an integer `Number` then `_int` will be used, otherwise `_bin` will be automatically assumed. 
 
 ```javascript
-riak.bucket('test').search.twoi([0,10000], 'my_numbers', function(err, response) {
-    console.log(response.results);
-    // will be an Array of the keys matched by the search.
+riak.bucket('test').search.twoi([0,10000], 'my_numbers', function(err, keys) {
+    console.log(keys);
 });
 ```
 
