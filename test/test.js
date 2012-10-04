@@ -42,7 +42,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                                 strings: { bin: ['this', 'that', 'the', 'other'] },
                                 numbers: { int: [1000,250,37,4234,5] }
                             },
-                            meta: { extra_details: "you might want to know"}
+                            meta: { details: "you might want to know" }
                         };
                         var created = [];
                         for(var i = 1; i <= 100; i++) {
@@ -217,13 +217,13 @@ describe("Nodiak Riak Client Test Suite", function() {
             riak._bucket.save('siblings_test', { allow_mult: true }, function(err, response) {
                 should.not.exist(err);
 
-                riak._object.save('siblings_test', 'this_ol_key', { "pointless": "data" }, { meta: "meta data goes here" }, function(err, obj) {
+                riak._object.save('siblings_test', 'this_ol_key', { "pointless": "data" }, { meta: { extra: "meta data goes here"} }, function(err, obj) {
                     should.not.exist(err);
                     obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                     obj.should.be.a('object').and.have.property('data');
                     obj.data.should.eql({ "pointless": "data" });
                 
-                    riak._object.save('siblings_test', 'this_ol_key', { "pointless": "sibling" }, { meta: "meta data goes EVERYWHERE" }, function(err, obj) {
+                    riak._object.save('siblings_test', 'this_ol_key', { "pointless": "sibling" }, { meta: {extra: "meta data goes EVERYWHERE"} }, function(err, obj) {
                         should.not.exist(err);
                         obj.should.be.a('object').and.have.property('key', 'this_ol_key');
                         obj.should.be.a('object').and.have.property('data');
