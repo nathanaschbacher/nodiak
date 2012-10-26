@@ -49,7 +49,7 @@ bucket.objects.get(array_of_keys).stream(function(event_emitter){})
 
 For streaming results the callback sent into the `.stream()` function gets an instance of `EventEmitter` passed to it, and this emitter fires `'data'`, `'error'`, and `'end'` events. 
 
-##Getting Started
+#Getting Started
  
 ####require('nodiak').getClient( _[backend], [host], [port], [defaults]_ );
 ###### // get client instance (defaults to HTTP backend on localhost:8098)
@@ -141,24 +141,20 @@ riak.resources(function(err, response) {
 > ```
 
 
-## Bucket Operations:
-###Bucket instance attributes
-####.name 
+# Bucket Operations:
+##Bucket instance attributes
+* ####.name 
 >The name of the bucket in Riak as a `String`.
-
-####.props
+* ####.props
 >An `Object` containing the Riak [bucket properties](http://wiki.basho.com/HTTP-Set-Bucket-Properties.html).  Defaults to `{}`. 
-
-####.resolver
+* ####.resolver
 >The `Function` used to do sibling resolution on `.object.get()` requests.  Defaults to `Bucket.siblingLastWriteWins` ([see here](#sibling-auto-resolution)).
-
-####.getSiblingsSync
+* ####.getSiblingsSync
 >Controls whether or not fetching siblings happens using parallel async requests or as one big _'multipart/mixed'_ to be parsed at once. Defaults to `false`.
-
-####.client
+* ####.client
 >An instance of the underlying backend client that handles communication with Riak.  Is set to the client that created the `Bucket` instance with `client.bucket()`.
 
-###Bucket instance methods
+##Bucket instance methods
 ####_client_.bucket( _name_ );
 ###### // factory method on the client that returns an instance of a Bucket object.
 
@@ -392,21 +388,17 @@ riak.bucket('users').objects.all(function(err, objs) {
 });
 ```
 
-##RObject Operations
-###RObject instance attributes
-####.bucket
+#RObject Operations
+##RObject instance attributes
+* ####.bucket
 >The `Bucket` instance that created this `RObject`.
-
-####.key
+* ####.key
 >The key for this object in Riak.  Defaults to `null`, which will cause Riak to generate a key when saving the RObject.
-
-####.data
+* ####.data
 >The data stored in Riak for this object.  Defaults to `{}`.
-
-####.metadata
+* ####.metadata
 >The metadata on the object stored in Riak, ie. vclock, content_type, last_modified, etc.  Defaults to `{}`.  A fully populated `metadata` object might look like this:
-
-```javascript
+>>```javascript
 {
     vclock: 'a85hYGBgzGDKBVIcR4M2cgcY8xzJYEpkzGNlcJ708CRfFgA=',
     meta: {
@@ -427,15 +419,14 @@ riak.bucket('users').objects.all(function(err, objs) {
     content_type: 'application/json',
     status_code: 200
 }
-```
+>>```
 
-####.options
+* ####.options
 >An `Object` for setting [Riak query parameters](http://wiki.basho.com/HTTP-Fetch-Object.html).  Defaults to `{}`.
-
-####.siblings
+* ####.siblings
 >An `Array` of sibling `RObjects` for this object in Riak.  Defaults to `undefined`.
 
-####RObjects instance methods
+##RObjects instance methods
 ####RObject.save( _[callback]_ )
 ###### // saves this RObject instance to Riak. Uses RObject's `.options` for the request if they exist.
 
