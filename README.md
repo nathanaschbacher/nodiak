@@ -392,10 +392,13 @@ riak.bucket('users').objects.all(function(err, objs) {
 ##RObject instance attributes
 * ####.bucket
 >The `Bucket` instance that created this `RObject`.
+
 * ####.key
 >The key for this object in Riak.  Defaults to `null`, which will cause Riak to generate a key when saving the RObject.
+
 * ####.data
 >The data stored in Riak for this object.  Defaults to `{}`.
+
 * ####.metadata
 >The metadata on the object stored in Riak, ie. vclock, content_type, last_modified, etc.  Defaults to `{}`.  A fully populated `metadata` object might look like this:
 >>```javascript
@@ -423,6 +426,7 @@ riak.bucket('users').objects.all(function(err, objs) {
 
 * ####.options
 >An `Object` for setting [Riak query parameters](http://wiki.basho.com/HTTP-Fetch-Object.html).  Defaults to `{}`.
+
 * ####.siblings
 >An `Array` of sibling `RObjects` for this object in Riak.  Defaults to `undefined`.
 
