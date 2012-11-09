@@ -145,12 +145,16 @@ riak.resources(function(err, response) {
 ##Bucket instance attributes
 * ####.name 
 >The name of the bucket in Riak as a `String`.
+
 * ####.props
 >An `Object` containing the Riak [bucket properties](http://wiki.basho.com/HTTP-Set-Bucket-Properties.html).  Defaults to `{}`. 
+
 * ####.resolver
 >The `Function` used to do sibling resolution on `.object.get()` requests.  Defaults to `Bucket.siblingLastWriteWins` ([see here](#sibling-auto-resolution)).
+
 * ####.getSiblingsSync
 >Controls whether or not fetching siblings happens using parallel async requests or as one big _'multipart/mixed'_ to be parsed at once. Defaults to `false`.
+
 * ####.client
 >An instance of the underlying backend client that handles communication with Riak.  Is set to the client that created the `Bucket` instance with `client.bucket()`.
 
