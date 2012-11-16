@@ -4,7 +4,7 @@
     "description": "Nodiak is a Node.js client for the Riak Distributed Database",
     "author": "Nathan Aschbacher <nathan@coradine.com>",
     "contributors": [ 
-        { "name": "Nathan Aschbacher", "email": "nathan@coradine.com" }
+        { "name": "Nathan Aschbacher", "email": "nathan.aschbacher@gmail.com" }
     ],
     "license": "MIT",
     "main": "index.js",
@@ -13,7 +13,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/Coradine/nodiak.git"
+        "url": "git://github.com/nathanaschbacher/nodiak.git"
     },
     "dependencies": {
         "deepmerge": ">=0.2.5",
