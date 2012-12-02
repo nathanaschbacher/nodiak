@@ -46,7 +46,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                         };
                         var created = [];
                         for(var i = 1; i <= 100; i++) {
-                            riak._object.save('test', null, data, metadata, function(err, obj) {
+                            riak._object.save('test', i, data, metadata, function(err, obj) {
                                 if(err) throw new Error(err.toString());
                                 else {
                                     created.push(obj);
