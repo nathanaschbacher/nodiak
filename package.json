@@ -1,8 +1,8 @@
 {
     "name": "nodiak",
-    "version": "0.0.9",
+    "version": "0.1.0",
     "description": "Nodiak is a Node.js client for the Riak Distributed Database",
-    "author": "Nathan Aschbacher <nathan@coradine.com>",
+    "author": "Nathan Aschbacher <nathan.aschbacher@gmail.com>",
     "contributors": [ 
         { "name": "Nathan Aschbacher", "email": "nathan.aschbacher@gmail.com" }
     ],
@@ -19,6 +19,7 @@
         "deepmerge": ">=0.2.5",
         "async": ">=0.1.22",
         "trustfund": ">=0.1.0"
+        "parsnip": ">=0.1.2"
     },
     "devDependencies": {
         "mocha": "*",
