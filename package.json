@@ -18,7 +18,7 @@
     "dependencies": {
         "deepmerge": ">=0.2.5",
         "async": ">=0.1.22",
-        "trustfund": ">=0.1.0"
+        "trustfund": ">=0.1.0",
         "parsnip": ">=0.1.2"
     },
     "devDependencies": {
