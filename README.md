@@ -305,7 +305,7 @@ for(var i = 0; i < 5; i++) {
     things_to_save.push(robj);
 }
 
-riak.bucket('users').objects.save(objs, function(errs, objs) {
+riak.bucket('users').objects.save(things_to_save, function(errs, objs) {
     console.log(objs);
     console.warn(errs);
 });
@@ -328,7 +328,7 @@ for(var i = 0; i < 5; i++) {
     things_to_save.push(robj);
 }
 
-riak.bucket('users').objects.save(objs).stream(function(results) {
+riak.bucket('users').objects.save(things_to_save).stream(function(results) {
     results.on('data', function(obj) {
         console.log(obj);
     });
