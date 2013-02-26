@@ -261,7 +261,9 @@ riak.bucket('users').objects.get(my_keys, { r: 1 }, function(errs, objs) {
 });
 ```
 
-Because I passed in an `Array` of keys the resulting `objs` value will be an `Array` of the resuling `RObject`s.  If the request produced errors then the `err` value will be either a single `Error` or an `Array` of `Error`'s for each that occurred.  `Error.data` will contain the _key_ for the failed request.
+Results returned through `objs` will be returned as an `Array` of `RObject`s if you passed in an `Array` of _keys_ to the request.  If the request produced errors then the `err` value will be an `Array` of `Error`'s for each that occurred or `null` if there were none.  `Error.data` will contain the _key_ for the failed request.  _Keys_ that can't be found are considered errors, and will be returned in `err` with a `.status_code` of `404`.  The value of `objs` value will be `null` none of the _keys_ could be found in Riak or all requests produced errors.
+
+If a single _key_ is passed in _(not wrapped in an `Array`)_, then the single resulting `RObject` will be returned directly through `objs` for convenience, and will be `null` if not found or another error occurred.  In the case of an error `err` will contain the single `Error` directly or will be `null` if none occurred.  This is provided for convenience when you're not attempting to get multiple objects. 
 
 > ***NOTE:*** 
 
@@ -311,7 +313,9 @@ riak.bucket('users').objects.save(things_to_save, function(errs, objs) {
 });
 ```
 
-`objs` will be an `Array` of the successfully saved `RObjects`, and `errs` will be single or multiple `Errors` for failed save requests.  `Error.data` will be the RObject that failed to save to Riak.
+Results returned through `objs` will be returned as an `Array` of successfully saved `RObject`s if you passed in an `Array` of `RObject`s to the request.  If the request produced errors then the `err` value will be an `Array` of `Error`'s for each that occurred or `null` if there were none.  `Error.data` will contain the `RObject` for the failed save.  The value of `objs` value will be `null` none of the `RObjects` could be saved in Riak or all requests produced errors.
+
+If a single `RObject` is passed in _(not wrapped in an `Array`)_, then the single successfully saved `RObject` will be returned directly through `objs` for convenience, and will be `null` if an error occurred.  In the case of an error `err` will contain the single `Error` directly or will be `null` if none occurred.  This is provided for convenience when you're not bulk saving multiple objects. 
 
 ####Bucket.objects.save( _r_objects_ ).stream( _callback_ )
 ###### // save one or more RObjects to Riak and get streamed results.
@@ -355,7 +359,9 @@ riak.bucket('users').objects.delete(array_of_robjs, function(errs, objs) {
 });
 ```
 
-`objs` will be an `Array` of the successfully deleted `RObjects`, and `errs` will be single or multiple `Errors` for failed delete requests.  `Error.data` will be the RObject that failed to be deleted from Riak.
+Results returned through `objs` will be returned as an `Array` of successfully deleted `RObject`s if you passed in an `Array` of `RObject`s to the request.  If the request produced errors then the `err` value will be an `Array` of `Error`'s for each that occurred or `null` if there were none.  `Error.data` will contain the `RObject` for the failed delete.  The value of `objs` value will be `null` none of the `RObjects` could be deleted from Riak or all requests produced errors.
+
+If a single `RObject` is passed in _(not wrapped in an `Array`)_, then the single successfully deleted `RObject` will be returned directly through `objs` for convenience, and will be `null` if an error occurred.  In the case of an error `err` will contain the single `Error` directly or will be `null` if none occurred.  This is provided for convenience when you're not bulk deleting multiple objects. 
 
 ####Bucket.objects.delete( _r_objects_ ).stream( _callback_ )
 ###### // delete one or more RObjects to Riak and get streamed results.
