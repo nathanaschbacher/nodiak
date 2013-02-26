@@ -709,6 +709,7 @@ The response will be an `Array` of the matching keys with the duplicates removed
 ####Bucket.search.twoi( _query, index_ ).stream( _callback_ )
 ###### // a 2i's range query that streams back the `RObjects` for the matched keys.
 
+```javascript
 var compiled_results = [];
 
 riak.bucket('test').search.twoi([0,10000], 'my_numbers').stream(function(results) {
@@ -724,6 +725,7 @@ riak.bucket('test').search.twoi([0,10000], 'my_numbers').stream(function(results
         // we're all done fetching results.
     });
 });
+```
 
 ##MapReduce
 
