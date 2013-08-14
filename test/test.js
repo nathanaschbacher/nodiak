@@ -245,7 +245,7 @@ describe("Nodiak Riak Client Test Suite", function() {
 
     describe("Using the base client to perform searches", function() {
         it("should be able to perform ranged integer 2i searches", function(done) {
-            riak._bucket.twoi('test', [0,10000], 'numbers_int', function(err, keys) {
+            riak._bucket.twoi('test', [0,10000], 'numbers_int', {}, function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(500);
                 done();
@@ -253,7 +253,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform exact match integer 2i searches", function(done) {
-            riak._bucket.twoi('test', 1000, 'numbers_int', function(err, keys) {
+            riak._bucket.twoi('test', 1000, 'numbers_int', {}, function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(100);
                 done();
@@ -261,7 +261,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform ranged binary 2i searches", function(done) {
-            riak._bucket.twoi('test', ['a','zzzzzzzzzzz'], 'strings_bin', function(err, keys) {
+            riak._bucket.twoi('test', ['a','zzzzzzzzzzz'], 'strings_bin', {}, function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(400);
                 done();
@@ -269,7 +269,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to perform exact match binary 2i searches", function(done) {
-            riak._bucket.twoi('test', 'that', 'strings_bin', function(err, keys) {
+            riak._bucket.twoi('test', 'that', 'strings_bin', {}, function(err, keys) {
                 should.not.exist(err);
                 keys.should.be.an.instanceOf(Array).with.lengthOf(100);
                 done();
