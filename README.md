@@ -29,10 +29,6 @@ Nodiak's design is split across two general concepts.  The base client, which ha
 
 # API
 
-> ***NOTE:*** significant search and streaming changes occurred in >= 0.0.7
-
-All methods that communicate with Riak take a callback function as their last parameter.  In many cases they're optional if you don't care about handling the results, so you can sort of fire-and-forget requests to Riak. In the case of operations which can provide streaming results, the callback is simply dropped from the primary method call, and the `.stream()` method is appeneded.  [See details below](#-streaming-callback-form).
-
 #####standard callback form
 
 ```javascript
@@ -691,28 +687,30 @@ riak.bucket('test').search.solr(query).stream(function(results) {
 This is simply provided as a convenience for when you know specifically that you want to fetch the actual objects in Riak referenced by the search result.
 
 
-####Bucket.search.twoi( _query, index, callback_ )
-###### // a 2i's range query that returns the list of matching keys.
+####Bucket.search.twoi( _query, index, [options], callback_ )
+###### // a 2i's range query that returns the list of matching keys (options is for Riak 1.4+).
 
 The query format in nodiak for a 2i's search is an `Array` tuple containing the beginning and end of the range you want to search `['a','zzzzzzzzz']`, or just a scalar value when you want to do an exact match `'match_this'`.
 
 You do not need to provide the `_int` or `_bin` suffix to the `index` name.  This is derived for you from the type of data you pass in to your query.  If the type is explicitly an integer `Number` then `_int` will be used, otherwise `_bin` will be automatically assumed. 
 
 ```javascript
-riak.bucket('test').search.twoi([0,10000], 'my_numbers', function(err, keys) {
+riak.bucket('test').search.twoi([0,10000], 'my_numbers', {max_results:50}, function(err, keys, continuation) {
     console.log(keys);
+    // if you're using 2i paging support in Riak 1.4 then you can use
+    // the `continuation` to send into your next request in the options object.
 });
 ```
 
 The response will be an `Array` of the matching keys with the duplicates removed.  Riak by default adds a *key* to the matching set for every match, so if you have multiple entries in an index that match your query, then you'll get duplicate entries of that *key*  in the results.  If for some reason you need those duplicates then you can use the underlying backend adapter client directly.
 
-####Bucket.search.twoi( _query, index_ ).stream( _callback_ )
-###### // a 2i's range query that streams back the `RObjects` for the matched keys.
+####Bucket.search.twoi( _query, index, options_ ).stream( _callback_ )
+###### // a 2i's range query that streams back the `RObjects` for the matched keys (options is for Riak 1.4+).
 
 ```javascript
 var compiled_results = [];
 
-riak.bucket('test').search.twoi([0,10000], 'my_numbers').stream(function(results) {
+riak.bucket('test').search.twoi([0,10000], 'my_numbers', ).stream(function(results) {
     results.on('data', function(obj) {
         compiled_results.push(obj);
     });
@@ -721,11 +719,19 @@ riak.bucket('test').search.twoi([0,10000], 'my_numbers').stream(function(results
         console.warn(err);
     });
     
-    results.on('end', function() {
+    results.on('end', function(continuation) {
         // we're all done fetching results.
+        // if you're using 2i paging support in Riak 1.4 then you can use
+        // the `continuation` to send into your next request in the options object.
     });
 });
 ```
+> ***NOTE:*** 
+
+> If you try to use the `return_terms: true` option on the streaming form it currently breaks because I don't have a good idea in mind what a use case for `return_terms: true` is, and so I'm having a hard time thinking up what the API or resulting data should look like.
+
+> My current thoughts are to iterate through the result set and stream back `RObject`s that simply have a `.term` property set on them that has the original matched-term set on it.
+
 
 ##MapReduce
 
@@ -814,7 +820,7 @@ The suite expects to find Riak on an HTTP interface on port 8091 and an HTTPS in
 
 #Todos
 
-1. Add Link parsing and Link-Walking interfaces.
+1. Add Riak Counters interface for using Riak CRDT's
 
 2. Add a protobufs backend implementation.
 
