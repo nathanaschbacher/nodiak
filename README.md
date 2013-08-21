@@ -14,6 +14,7 @@ Nodiak's design is split across two general concepts.  The base client, which ha
 * Automatic exponential-backoff retries.
 * Cluster info operations.
 * Bulk/Batch object operations (Get, Save, Delete).
+* Riak CRDT Counters.
 * Sibling notification.
 * Parallel async and 'at once' sibling fetching.
 * Sibling resolution and auto-resolution support (default: client-side LWW).
@@ -541,6 +542,60 @@ riak.bucket('users').object.get('me', function(err, obj) {
 });
 ```
 
+#Counter Operations
+##Counter instance attributes
+* ####.bucket
+>The `Bucket` instance that this `Counter` belongs to.
+
+* ####.name
+>The name of the `Counter` that will be worked on in the `Bucket`
+
+
+##Counter instance methods
+> ***NOTE:*** 
+
+>In order to use Riak Counters you must set `allow_mult: true` on the bucket properties for the bucket where you'll create your counters; as the CRDT counter functionality in Riak depends on siblings being created on write. 
+
+####_client_.counter( _bucket_name, counter_name_ );
+###### // factory method on the client that returns an instance of a Counter object.
+
+```javascript
+var likes = riak.counter('the_counts', 'likes');
+```
+
+####Counter.add( _amount, callback_ )
+###### // adds `amount` to the current value of a Riak counter.
+
+```javascript
+var likes = riak.counter('the_counts', 'likes');
+
+likes.add(5, function(err) {
+    console.log(err);
+});
+```
+
+####Counter.subtract( _amount, callback_ )
+###### // subtracts `amount` from the current value of a Riak counter.
+
+```javascript
+var likes = riak.counter('the_counts', 'likes');
+
+likes.subtract(5, function(err) {
+    console.log(err);
+});
+```
+
+####Counter.value( _callback_ )
+###### // gets the current value of a Riak counter.
+
+```javascript
+var likes = riak.counter('the_counts', 'likes');
+
+likes.value(function(err, count) {
+    console.log(count);  // will be the value of the count as an integer
+});
+```
+
 ##Sibling Auto-Resolution
 
 By default nodiak's Bucket class contains a client-side implementation of Last-Write-Wins for managing resolution.  It takes an array of sibling RObjects and returns the resolved sibling.  Implemented as follows:
@@ -816,13 +871,11 @@ The test suite can be run by simply:
     $ npm install -d
     $ npm test
 
-The suite expects to find Riak on an HTTP interface on port 8091 and an HTTPS interface on port 8071.  You can edit these values at the top of the `test/test.js` file to suit your environment.
+The suite expects to find Riak on an HTTP interface on port 8098 and an HTTPS interface on port 8097.  You can edit these values at the top of the `test/test.js` file to suit your environment.
 
 #Todos
 
-1. Add Riak Counters interface for using Riak CRDT's
-
-2. Add a protobufs backend implementation.
+1. Add a protobufs backend implementation.
 
 # License
 
@@ -830,7 +883,7 @@ The suite expects to find Riak on an HTTP interface on port 8091 and an HTTPS in
 
 Copyright (c) 2012 Coradine Aviation Systems
 
-Copyright (c) 2012 Nathan Aschbacher
+Copyright (c) 2013 Nathan Aschbacher
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the 'Software'), to deal in

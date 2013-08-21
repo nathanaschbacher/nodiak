@@ -23,8 +23,8 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 describe("Nodiak Riak Client Test Suite", function() {
-    var riak = require('../index.js').getClient('http', 'localhost', '8091');
-    var riaks = require('../index.js').getClient('https', 'localhost', '8071');
+    var riak = require('../index.js').getClient('http', 'localhost', '8098');
+    var riaks = require('../index.js').getClient('http', 'localhost', '8097');
     
     var async = require('async');
     var should = require('should');
@@ -500,7 +500,31 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
     });
 
+    describe("Using the 'Counter' class to perform CRDT Counter operations", function() {
+        it("should be able to add to a counter", function(done) {
+            riak.counter('siblings_test', 'the_count').add(4, function(err, response) {
+                should.not.exist(err);
+                done();
+            });
+        });
 
+        it("should be able to subtract from a counter", function(done) {
+            riak.counter('siblings_test', 'the_count').subtract(2, function(err, response) {
+                should.not.exist(err);
+                done();
+            });
+        });
+
+        it("should be able to get the value of a counter", function(done) {
+            riak.counter('siblings_test', 'the_count').value(function(err, response) {
+                should.not.exist(err);
+                var type = typeof(response);
+                type.should.eql('number');
+                response.should.eql(2);
+                done();
+            });
+        });
+    });
 
     after(function(done) { // teardown pre-test setup.
         this.timeout(10000);
