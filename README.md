@@ -1,8 +1,67 @@
+**Table of Contents**  
+
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+	- [require('nodiak').getClient( _[backend], [host], [port], [defaults]_ );](#require'nodiak'getclient-_backend-host-port-defaults_-;)
+- [Cluster info and status:](#cluster-info-and-status)
+	- [.ping( _callback_ );](#ping-_callback_-;)
+	- [.stats( _callback_ );](#stats-_callback_-;)
+	- [.resources( _callback_ );](#resources-_callback_-;)
+- [Bucket Operations:](#bucket-operations)
+	- [Bucket instance attributes](#bucket-instance-attributes)
+	- [Bucket instance methods](#bucket-instance-methods)
+		- [_client_.bucket( _name_ );](#_client_bucket-_name_-;)
+		- [Bucket.getProps( _[callback]_ );](#bucketgetprops-_callback_-;)
+		- [Bucket.saveProps( _[merge], [callback]_ );](#bucketsaveprops-_merge-callback_-;)
+		- [Bucket.object.new( _key, [data], [metadata]_ )](#bucketobjectnew-_key-data-metadata_-)
+		- [Bucket.object.exists( _key, callback_ )](#bucketobjectexists-_key-callback_-)
+		- [Bucket.objects.get( _keys, [options], [resolver_fn, callback]_ )](#bucketobjectsget-_keys-options-resolver_fn-callback_-)
+		- [Bucket.objects.get( _keys, [options]_ ).stream( _[resolver_fn], callback_ )](#bucketobjectsget-_keys-options_-stream-_resolver_fn-callback_-)
+		- [Bucket.objects.save( _r_objects, [callback]_)](#bucketobjectssave-_r_objects-callback_)
+		- [Bucket.objects.save( _r_objects_ ).stream( _callback_ )](#bucketobjectssave-_r_objects_-stream-_callback_-)
+		- [Bucket.objects.delete( _r_objects, [callback]_ )](#bucketobjectsdelete-_r_objects-callback_-)
+		- [Bucket.objects.delete( _r_objects_ ).stream( _callback_ )](#bucketobjectsdelete-_r_objects_-stream-_callback_-)
+		- [Bucket.objects.all( _callback_ )](#bucketobjectsall-_callback_-)
+- [RObject Operations](#robject-operations)
+	- [RObject instance attributes](#robject-instance-attributes)
+	- [RObjects instance methods](#robjects-instance-methods)
+		- [RObject.save( _[callback]_ )](#robjectsave-_callback_-)
+		- [RObject.delete( _[callback]_ )](#robjectdelete-_callback_-)
+		- [RObject.fetch( _[resolver_fn], callback_ )](#robjectfetch-_resolver_fn-callback_-)
+		- [RObject.setMeta( _name, value_ )](#robjectsetmeta-_name-value_-)
+		- [RObject.getMeta( _name_ )](#robjectgetmeta-_name_-)
+		- [RObject.removeMeta( _name_ )](#robjectremovemeta-_name_-)
+		- [RObject.addToIndex( _name, value_ )](#robjectaddtoindex-_name-value_-)
+		- [RObject.getIndex( _name_ )](#robjectgetindex-_name_-)
+		- [RObject.removeFromIndex( _name, value_ )](#robjectremovefromindex-_name-value_-)
+		- [RObject.clearIndex( _name_ )](#robjectclearindex-_name_-)
+- [Counter Operations](#counter-operations)
+	- [Counter instance attributes](#counter-instance-attributes)
+	- [Counter instance methods](#counter-instance-methods)
+		- [_client_.counter( _bucket_name, counter_name_ );](#_client_counter-_bucket_name-counter_name_-;)
+		- [Counter.add( _amount, callback_ )](#counteradd-_amount-callback_-)
+		- [Counter.subtract( _amount, callback_ )](#countersubtract-_amount-callback_-)
+		- [Counter.value( _callback_ )](#countervalue-_callback_-)
+- [Sibling Auto-Resolution](#sibling-auto-resolution)
+- [Riak Search and Riak 2i's](#riak-search-and-riak-2i's)
+	- [Bucket.search.solr( _query, callback_ )](#bucketsearchsolr-_query-callback_-)
+	- [Bucket.search.solr( _query_ ).stream( _callback_ )](#bucketsearchsolr-_query_-stream-_callback_-)
+	- [Bucket.search.twoi( _query, index, [options], callback_ )](#bucketsearchtwoi-_query-index-options-callback_-)
+	- [Bucket.search.twoi( _query, index, options_ ).stream( _callback_ )](#bucketsearchtwoi-_query-index-options_-stream-_callback_-)
+- [MapReduce](#mapreduce)
+	- [client.mapred.inputs( _inputs, [include_data]_ )](#clientmapredinputs-_inputs-include_data_-)
+	- [.map( _phase_ ) .link( _phase_ ) .reduce( _phase_ )  .execute( _callback_ )](#map-_phase_--link-_phase_--reduce-_phase_---execute-_callback_-)
+	- [.execute( ).stream( _callback_ )](#execute-stream-_callback_-)
+- [Tests](#tests)
+- [Todos](#todos)
+
 # Overview
 
 Nodiak is a node.js client to [the Riak distributed database](http://basho.com/products/riak-overview/).  The focus of Nodiak is to provide a client that mimics some of the patterns and functionality of Basho's official clients for other languages while still taking advantage of the benefits of asynchronous patterns that can be easily implemented in node.js.
 
-Nodiak's design is split across two general concepts.  The base client, which handles the base Riak HTTP API operations, and useful higher-level abstractions (Bucket and RObject) that build on the base client functionality to make Riak easier to work with.
+Nodiak's design is split across two general concepts.  The base client, which handles the base Riak HTTP API operations, and useful higher-level abstractions (Bucket, Counter, and RObject) that build on the base client functionality to make Riak easier to work with.
 
 > ***NOTE:*** 
 
