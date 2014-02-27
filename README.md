@@ -893,7 +893,9 @@ The test suite can be run by simply:
     $ npm install -d
     $ npm test
 
-The suite expects to find Riak on an HTTP interface on port 8098 and an HTTPS interface on port 8097.  You can edit these values at the top of the `test/test.js` file to suit your environment.
+The test suite can take several environment variables to modify what gets tested.  This is useful for when you don't have dependent Riak features enabled (eg. skipping the 2i tests if you don't have a 2i capable Riak KV storage backend defined).  The options and their defaults are as follows:
+
+    $ NODIAK_BACKEND=http  NODIAK_HOST=localhost  NODIAK_PORT=8098  NODIAK_SEARCH=false  NODIAK_2I=false npm test`
 
 #Todos
 
