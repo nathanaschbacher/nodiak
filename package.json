@@ -1,6 +1,6 @@
 {
     "name": "nodiak",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "Nodiak is a Node.js client for the Riak Distributed Database",
     "author": "Nathan Aschbacher <nathan.aschbacher@gmail.com>",
     "contributors": [ 
