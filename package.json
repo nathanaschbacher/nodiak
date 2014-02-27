@@ -18,7 +18,6 @@
     "dependencies": {
         "deepmerge": ">=0.2.5",
         "async": ">=0.2.5",
-        "trustfund": ">=0.1.0"
         "trustfund": ">=0.1.0",
         "agentkeepalive": ">=0.2.2"
     },
