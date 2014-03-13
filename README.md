@@ -52,6 +52,10 @@ Nodiak's design is split across two general concepts.  The base client, which ha
 
 # API
 
+> ***NOTE:*** 
+
+>Version 0.4.0 includes minor, but breaking, changes to the streaming API.  The 2i streaming no longer auto-fetches the Riak objects for the keys returned by the query, and the streaming API form now returns an instance of `EventEmitter` directly from the `.stream()` calls rather than requiring an additional callback to be passed in.
+
 #####standard callback form
 
 ```javascript
@@ -63,10 +67,13 @@ The argument signature of the callback for non-streaming results is always `call
 #####streaming callback form
 
 ```javascript
-bucket.objects.get(array_of_keys).stream(function(event_emitter){})
+bucket.objects.get(array_of_keys).stream()
+.on('data', function(data) {})
+.on('error', function(err) {})
+.on('end', function(arg) {});
 ```
 
-For streaming results the callback sent into the `.stream()` function gets an instance of `EventEmitter` passed to it, and this emitter fires `'data'`, `'error'`, and `'end'` events. 
+For streaming results the function `.stream()` returns gets an instance of `EventEmitter`, and this emitter fires `'data'`, `'error'`, and `'end'` events. 
 
 #Getting Started
  
@@ -288,7 +295,7 @@ If a single _key_ is passed in _(not wrapped in an `Array`)_, then the single re
 
 >By default nodiak fetches object siblings using parallel async GET requests for each sibling.  This behavior can be overridden by setting the `.getSiblingsSync` property on the `Bucket` instance to `true`.  This will cause nodiak to get all the siblings as a single large *'multipart/mixed'* document and parse the contents.  Further details in the [Sibling Auto-Resolution](#sibling-auto-resolution) section.
 
-####Bucket.objects.get( _keys, [options]_ ).stream( _[resolver_fn], callback_ )
+####Bucket.objects.get( _keys, [options]_ ).stream( _[resolver_fn]_ )
 ###### // get one or more objects from Riak as a stream of RObjects.
 
 All the same details apply here as in the standard `Bucket.objects.get()` method, except to signal that you want to stream the objects back from Riak you drop the callback **and** the resolver from `.get()`, place them in `.stream()`, and attach your listeners to the parameter passed to the callback.
@@ -296,18 +303,15 @@ All the same details apply here as in the standard `Bucket.objects.get()` method
 ```javascript
 var my_keys = ['me', 'myself', 'andI'];
 
-riak.bucket('users').objects.get(my_keys, { r: 1 }).stream(function(results) {
-    results.on('data', function(obj) {
-        console.log(obj);
-    });
-    
-    results.on('error', function(err) {
-        console.warn(err);
-    });
-    
-    results.on('end', function() {
-        // do something else after we're all done getting the objects.
-    });
+riak.bucket('users').objects.get(my_keys, { r: 1 }).stream()
+.on('data', function(obj) {
+    console.log(obj);
+})
+.on('error', function(err) {
+    console.warn(err);
+})
+.on('end', function() {
+    // do something else after we're all done getting the objects.
 });
 ```
 
@@ -336,10 +340,10 @@ Results returned through `objs` will be returned as an `Array` of successfully s
 
 If a single `RObject` is passed in _(not wrapped in an `Array`)_, then the single successfully saved `RObject` will be returned directly through `objs` for convenience, and will be `null` if an error occurred.  In the case of an error `err` will contain the single `Error` directly or will be `null` if none occurred.  This is provided for convenience when you're not bulk saving multiple objects. 
 
-####Bucket.objects.save( _r_objects_ ).stream( _callback_ )
+####Bucket.objects.save( _r_objects_ ).stream()
 ###### // save one or more RObjects to Riak and get streamed results.
 
-All the same details apply here as in the standard `Bucket.objects.save()` method, except to signal that you want to stream the result notifications back from Riak you drop the callback from `.save()`, place it in `.stream()`, and attach your listeners to the parameter passed to the callback.
+All the same details apply here as in the standard `Bucket.objects.save()` method, except to signal that you want to stream the result notifications back from Riak you drop the callback from `.save()`, and append `.stream()`, and attach your listeners to the returned `EventListener`.
 
 ```javascript
 var things_to_save = [];
@@ -351,18 +355,15 @@ for(var i = 0; i < 5; i++) {
     things_to_save.push(robj);
 }
 
-riak.bucket('users').objects.save(things_to_save).stream(function(results) {
-    results.on('data', function(obj) {
-        console.log(obj);
-    });
-    
-    results.on('error', function(err) {
-        console.warn(err);
-    });
-    
-    results.on('end', function() {
-        // do something else after we're all done getting the objects.
-    });
+riak.bucket('users').objects.save(things_to_save).stream()
+.on('data', function(obj) {
+    console.log(obj);
+})
+.on('error', function(err) {
+    console.warn(err);
+})
+.on('end', function() {
+    // do something else after we're all done getting the objects.
 });
 ```
 
@@ -382,24 +383,21 @@ Results returned through `objs` will be returned as an `Array` of successfully d
 
 If a single `RObject` is passed in _(not wrapped in an `Array`)_, then the single successfully deleted `RObject` will be returned directly through `objs` for convenience, and will be `null` if an error occurred.  In the case of an error `err` will contain the single `Error` directly or will be `null` if none occurred.  This is provided for convenience when you're not bulk deleting multiple objects. 
 
-####Bucket.objects.delete( _r_objects_ ).stream( _callback_ )
+####Bucket.objects.delete( _r_objects_ ).stream()
 ###### // delete one or more RObjects to Riak and get streamed results.
 
-All the same details apply here as in the standard `Bucket.objects.delete()` method, except to signal that you want to stream the result notifications back from Riak you drop the callback from `.save()`, place it in `.stream()`, and attach your listeners to the parameter passed to the callback.
+All the same details apply here as in the standard `Bucket.objects.delete()` method, except to signal that you want to stream the result notifications back from Riak you drop the callback from `.save()`, and append `.stream()`, and attach your listeners to the returned `EventListener`.
 
 ```javascript
-riak.bucket('users').objects.delete(array_of_robjs).stream(function(results) {
-    results.on('data', function(obj) {
-        console.log(obj);
-    });
-    
-    results.on('error', function(err) {
-        console.warn(err);
-    });
-    
-    results.on('end', function() {
-        // do something else after we're all done deleting the objects.
-    });
+riak.bucket('users').objects.delete(array_of_robjs).stream()
+.on('data', function(obj) {
+    console.log(obj);
+})
+.on('error', function(err) {
+    console.warn(err);
+})
+.on('end', function() {
+    // do something else after we're all done deleting the objects.
 });
 ```
 
@@ -732,7 +730,7 @@ riak.bucket('test').search.solr(query, true, function(err, response) {
 }
 >```
 
-####Bucket.search.solr( _query_ ).stream( _callback_ )
+####Bucket.search.solr( _query_ ).stream()
 ###### // perform a Riak Search operation and stream back the `docs` elements as `RObject`s
 
 Just as with the non-streaming version of this call, the `query` should be an `Object` containing properties that map to the URL query params specified in [Querying via the Solr Interface](http://wiki.basho.com/Riak-Search---Querying.html).  The `wt` parameter defaults to JSON.
@@ -746,18 +744,15 @@ var query = {
 
 var compiled_results = [];
 
-riak.bucket('test').search.solr(query).stream(function(results) {
-    results.on('data', function(obj) {
-        compiled_results.push(obj);
-    });
-
-    results.on('error', function(err) {
-        console.warn(err);
-    });
-    
-    results.on('end', function() {
-        // we're all done fetching results.
-    });
+riak.bucket('test').search.solr(query).stream()
+.on('data', function(obj) {
+    compiled_results.push(obj);
+})
+.on('error', function(err) {
+    console.warn(err);
+})
+.on('end', function() {
+    // we're all done fetching results.
 });
 ```
 
@@ -781,26 +776,23 @@ riak.bucket('test').search.twoi([0,10000], 'my_numbers', {max_results:50}, funct
 
 The response will be an `Array` of the matching keys with the duplicates removed.  Riak by default adds a *key* to the matching set for every match, so if you have multiple entries in an index that match your query, then you'll get duplicate entries of that *key*  in the results.  If for some reason you need those duplicates then you can use the underlying backend adapter client directly.
 
-####Bucket.search.twoi( _query, index, options_ ).stream( _callback_ )
-###### // a 2i's range query that streams back the `RObjects` for the matched keys (options is for Riak 1.4+).
+####Bucket.search.twoi( _query, index, options_ ).stream()
+###### // a 2i's range query that streams back the matched keys (options is for Riak 1.4+).
 
 ```javascript
 var compiled_results = [];
 
-riak.bucket('test').search.twoi([0,10000], 'my_numbers', ).stream(function(results) {
-    results.on('data', function(obj) {
-        compiled_results.push(obj);
-    });
-
-    results.on('error', function(err) {
-        console.warn(err);
-    });
-    
-    results.on('end', function(continuation) {
-        // we're all done fetching results.
-        // if you're using 2i paging support in Riak 1.4 then you can use
-        // the `continuation` to send into your next request in the options object.
-    });
+riak.bucket('test').search.twoi([0,10000], 'my_numbers', ).stream()
+.on('data', function(obj) {
+    compiled_results.push(obj);
+});
+.on('error', function(err) {
+    console.warn(err);
+})
+results.on('end', function(continuation) {
+    // we're all done fetching results.
+    // if you're using 2i paging support in Riak 1.4 then you can use
+    // the `continuation` to send into your next request in the options object.
 });
 ```
 > ***NOTE:*** 
@@ -846,7 +838,7 @@ riak.mapred.inputs([['a_bucket','key1'], ['b_bucket','key2']])
     }
 );
 ```
-####.execute( ).stream( _callback_ )
+####.execute( ).stream()
 ###### // MapReduce w/ streaming results.
 
 ```javascript
@@ -864,20 +856,16 @@ riak.mapred.inputs('test')
         module: 'riak_kv_mapreduce',
         function: 'reduce_count_inputs'})     
     
-    .execute().stream(function(results) {
-        results.on('data', function(result) {
-            compiled_results.push(result);
-        });
-
-        results.on('end', function() {
-            console.log(compiled_results);
-        });
-
-        results.on('error', function(err) {
-            // Handle this however you like.
-        });
-    }
-);
+    .execute().stream()
+    .on('data', function(result) {
+        compiled_results.push(result);
+    })
+    .on('end', function() {
+        console.log(compiled_results);
+    })
+    .on('error', function(err) {
+        // Handle this however you like.
+    });
 ```
 
 >***NOTE:***

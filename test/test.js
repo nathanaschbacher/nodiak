@@ -23,6 +23,8 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 describe("Nodiak Riak Client Test Suite", function() {
+    var TIMEOUT = process.env.TIMEOUT || 20000;
+    var NUM_OBJECTS = parseInt(process.env.NUM_OBJECTS, 10) || 1000;
     var backend = process.env.NODIAK_BACKEND || 'http';
     var host = process.env.NODIAK_HOST || 'localhost';
     var port = process.env.NODIAK_PORT || '8098';
@@ -35,6 +37,7 @@ describe("Nodiak Riak Client Test Suite", function() {
     var should = require('should');
 
     before(function(done){ // bootstrap settings and data for tests.
+        this.timeout(TIMEOUT);
         riak.ping(function(err, response) {
             if(err) throw new Error(err.toString());
             else {
@@ -52,14 +55,14 @@ describe("Nodiak Riak Client Test Suite", function() {
                             meta: { details: "you might want to know" }
                         };
                         var created = [];
-                        for(var i = 1; i <= 100; i++) {
+                        for(var i = 1; i <= NUM_OBJECTS; i++) {
                             riak._object.save('nodiak_test', i, data, metadata, function(err, obj) {
                                 if(err) throw new Error(err.toString());
                                 else {
                                     created.push(obj);
                                 }
 
-                                if(created.length == 100) {
+                                if(created.length == NUM_OBJECTS) {
                                     done();
                                 }
                             });
@@ -133,18 +136,15 @@ describe("Nodiak Riak Client Test Suite", function() {
         });
 
         it("should be able to list all keys in a bucket", function(done) {
-            riak._bucket.keys('nodiak_test').stream(function(keys) {
-                keys.on('data', function(data) {
-                    data.should.be.an.instanceOf(Array);
-                });
-
-                keys.on('end', function() {
-                    done();
-                });
-
-                keys.on('error', function(err) {
-                    should.not.exist(err);
-                });
+            riak._bucket.keys('nodiak_test').stream()
+            .on('data', function(data) {
+                data.should.be.an.instanceOf(Array);
+            })
+            .on('end', function() {
+                done();
+            })
+            .on('error', function(err) {
+                should.not.exist(err);
             });
         });
     });
@@ -230,7 +230,7 @@ describe("Nodiak Riak Client Test Suite", function() {
             it("should be able to perform ranged integer 2i searches", function(done) {
                 riak._bucket.twoi('nodiak_test', [0,10000], 'numbers_int', {}, function(err, keys) {
                     should.not.exist(err);
-                    keys.should.be.an.instanceOf(Array).with.lengthOf(500);
+                    keys.should.be.an.instanceOf(Array).with.lengthOf(NUM_OBJECTS * 5);
                     done();
                 });
             });
@@ -238,7 +238,7 @@ describe("Nodiak Riak Client Test Suite", function() {
             it("should be able to perform exact match integer 2i searches", function(done) {
                 riak._bucket.twoi('nodiak_test', 1000, 'numbers_int', {}, function(err, keys) {
                     should.not.exist(err);
-                    keys.should.be.an.instanceOf(Array).with.lengthOf(100);
+                    keys.should.be.an.instanceOf(Array).with.lengthOf(NUM_OBJECTS);
                     done();
                 });
             });
@@ -246,7 +246,7 @@ describe("Nodiak Riak Client Test Suite", function() {
             it("should be able to perform ranged binary 2i searches", function(done) {
                 riak._bucket.twoi('nodiak_test', ['a','zzzzzzzzzzz'], 'strings_bin', {}, function(err, keys) {
                     should.not.exist(err);
-                    keys.should.be.an.instanceOf(Array).with.lengthOf(400);
+                    keys.should.be.an.instanceOf(Array).with.lengthOf(NUM_OBJECTS * 4);
                     done();
                 });
             });
@@ -254,7 +254,7 @@ describe("Nodiak Riak Client Test Suite", function() {
             it("should be able to perform exact match binary 2i searches", function(done) {
                 riak._bucket.twoi('nodiak_test', 'that', 'strings_bin', {}, function(err, keys) {
                     should.not.exist(err);
-                    keys.should.be.an.instanceOf(Array).with.lengthOf(100);
+                    keys.should.be.an.instanceOf(Array).with.lengthOf(NUM_OBJECTS);
                     done();
                 });
             });
@@ -270,7 +270,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                 riak._bucket.solr('nodiak_test', { q: 'field1:been' }, function(err, obj) {
                     should.not.exist(null);
                     obj.data.should.have.property('response');
-                    obj.data.response.should.have.property('numFound', 100);
+                    obj.data.response.should.have.property('numFound', NUM_OBJECTS);
                     obj.data.response.should.have.property('docs').with.lengthOf(10);
                     done();
                 });
@@ -292,23 +292,19 @@ describe("Nodiak Riak Client Test Suite", function() {
                 .reduce({
                     language: 'erlang',
                     module: 'riak_kv_mapreduce',
-                    function: 'reduce_count_inputs'})     
-                .execute().stream(function(results) {
-                    results.on('data', function(result) {
-                        result.should.be.a('object');
-                        result.data.should.be.an.instanceOf(Array);
-                        result.data[0].should.equal(101);
-                    });
-
-                    results.on('end', function() {
-                        done();
-                    });
-
-                    results.on('error', function(err) {
-                        should.not.exist(err);
-                    });
-                }
-            );
+                    function: 'reduce_count_inputs'})
+                .execute().stream()
+                .on('data', function(result) {
+                    result.should.be.a('object');
+                    result.data.should.be.an.instanceOf(Array);
+                    result.data[0].should.equal(NUM_OBJECTS + 1);
+                })
+                .on('end', function() {
+                    done();
+                })
+                .on('error', function(err) {
+                    should.not.exist(err);
+                });
         });
 
         it("should be able to handle non-streamed results", function(done) {
@@ -326,7 +322,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                     should.not.exist(err);
                     result.should.be.a('object');
                     result.data.should.be.an.instanceOf(Array);
-                    result.data[0].should.equal(101);
+                    result.data[0].should.equal(NUM_OBJECTS + 1);
                     done();
                 }
             );
@@ -409,54 +405,52 @@ describe("Nodiak Riak Client Test Suite", function() {
 
     describe("Using the 'Bucket' class to perform 2i queries", function() {
         if(twoi_enabled) {
-            it("should be able to perform ranged 2i searches, stream results as RObjects", function(done) {
+            it("should be able to perform ranged 2i searches, stream results as keys", function(done) {
                 var all_results = [];
-                riak.bucket('nodiak_test').search.twoi([0,10000], 'numbers').stream(function(response) {
-                    response.on('data', function(r_obj) {
-                        r_obj.constructor.name.should.eql('RObject');
-                        all_results.push(r_obj);
-                    });
-                    response.on('error', function(err) {
-                        should.not.exist(err);
-                    });
-                    response.on('end', function() {
-                        all_results.length.should.eql(100);
-                        done();
-                    });
+                riak.bucket('nodiak_test').search.twoi([0,10000], 'numbers').stream()
+                .on('data', function(key) {
+                    key.constructor.name.should.eql('String');
+                    all_results.push(key);
+                })
+                .on('error', function(err) {
+                    should.not.exist(err);
+                })
+                .on('end', function() {
+                    all_results.length.should.eql(NUM_OBJECTS);
+                    done();
                 });
             });
 
             it("should be able to perform ranged 2i searches, results as keys", function(done) {
                 riak.bucket('nodiak_test').search.twoi([0,10000], 'numbers', function(err, response) {
                     should.not.exist(err);
-                    response.should.be.an.instanceOf(Array).with.lengthOf(100);
+                    response.should.be.an.instanceOf(Array).with.lengthOf(NUM_OBJECTS);
 
                     response[0].constructor.name.should.eql('String');
                     done();
                 });
             });
 
-            it("should be able to perform exact match 2i searches, stream results as RObjects", function(done) {
+            it("should be able to perform exact match 2i searches, stream results as keys", function(done) {
                 var all_results = [];
-                riak.bucket('nodiak_test').search.twoi('that', 'strings').stream(function(response) {
-                    response.on('data', function(r_obj) {
-                        r_obj.constructor.name.should.eql('RObject');
-                        all_results.push(r_obj);
-                    });
-                    response.on('error', function(err) {
-                        should.not.exist(err);
-                    });
-                    response.on('end', function() {
-                        all_results.length.should.eql(100);
-                        done();
-                    });
+                riak.bucket('nodiak_test').search.twoi('that', 'strings').stream()
+                .on('data', function(key) {
+                    key.constructor.name.should.eql('String');
+                    all_results.push(key);
+                })
+                .on('error', function(err) {
+                    should.not.exist(err);
+                })
+                .on('end', function() {
+                    all_results.length.should.eql(NUM_OBJECTS);
+                    done();
                 });
             });
 
             it("should be able to perform exact match 2i searches, results as keys", function(done) {
                 riak.bucket('nodiak_test').search.twoi('that', 'strings', function(err, response) {
                     should.not.exist(err);
-                    response.should.be.an.instanceOf(Array).with.lengthOf(100);
+                    response.should.be.an.instanceOf(Array).with.lengthOf(NUM_OBJECTS);
 
                     response[0].constructor.name.should.eql('String');
                     done();
@@ -472,18 +466,17 @@ describe("Nodiak Riak Client Test Suite", function() {
         if(search_enabled) {
             it("should be able to perform Solr search on indexed bucket, stream results as RObjects", function(done) {
                 var all_results = [];
-                riak.bucket('nodiak_test').search.solr({ q: 'field1:been' }).stream(function(results) {
-                    results.on('data', function(r_obj) {
-                        r_obj.constructor.name.should.eql('RObject');
-                        all_results.push(r_obj);
-                    });
-                    results.on('error', function(err) {
-                        should.not.exist(err);
-                    });
-                    results.on('end', function() {
-                        all_results.length.should.eql(10);
-                        done();
-                    });
+                riak.bucket('nodiak_test').search.solr({ q: 'field1:been' }).stream()
+                .on('data', function(r_obj) {
+                    r_obj.constructor.name.should.eql('RObject');
+                    all_results.push(r_obj);
+                })
+                .on('error', function(err) {
+                    should.not.exist(err);
+                })
+                .on('end', function() {
+                    all_results.length.should.eql(10);
+                    done();
                 });
             });
 
@@ -492,7 +485,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                     should.not.exist(err);
                     results.should.have.property('response');
                     results.response.should.have.property('numFound');
-                    results.response.numFound.should.eql(100);
+                    results.response.numFound.should.eql(NUM_OBJECTS);
 
                     results.response.should.have.property('docs');
                     results.response.docs.should.be.an.instanceOf(Array).with.lengthOf(10);
@@ -558,7 +551,7 @@ describe("Nodiak Riak Client Test Suite", function() {
     });
 
     after(function(done) { // teardown pre-test setup.
-        this.timeout(10000);
+        this.timeout(TIMEOUT);
         function delete_all(done) {
             async.parallel([
                 function(next) {
