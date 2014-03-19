@@ -41,7 +41,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         riak.ping(function(err, response) {
             if(err) throw new Error(err.toString());
             else {
-                var search_hook = search_enabled ? {"precommit":[{"mod":"riak_search_kv_hook","fun":"precommit"}]} : {"precommit":[]};
+                var search_hook = search_enabled ? {precommit:[{mod:"riak_search_kv_hook",fun:"precommit"}]} : {precommit:[]};
 
                 riak._bucket.save('nodiak_test', search_hook, function(err, result) {
                     if(err) throw new Error(err.toString());
