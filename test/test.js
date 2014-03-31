@@ -85,7 +85,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to get stats via "+backend.toUpperCase(), function(done) {
             riak.stats(function(err, response) {
                 should.not.exist(err);
-                response.should.be.a('object');
+                response.should.be.an.Object;
                 done();
             });
         });
@@ -93,7 +93,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to list resources via "+backend.toUpperCase(), function(done) {
             riak.resources(function(err, response) {
                 should.not.exist(err);
-                response.should.be.a('object');
+                response.should.be.an.Object;
                 done();
             });
         });
@@ -103,7 +103,7 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to read bucket properties", function(done) {
             riak._bucket.props('random_bucket', function(err, props) {
                 should.not.exist(err);
-                props.should.be.a('object').and.have.property('name', 'random_bucket');
+                props.should.be.an.Object.and.have.property('name', 'random_bucket');
                 done();
             });
         });
@@ -170,8 +170,8 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to save an object", function(done) {
             riak._object.save('nodiak_test', 'this_ol_key', { "pointless": "data" }, null, function(err, obj) {
                 should.not.exist(err);
-                obj.should.be.a('object').and.have.property('key', 'this_ol_key');
-                obj.should.be.a('object').and.have.property('data');
+                obj.should.be.an.Object.and.have.property('key', 'this_ol_key');
+                obj.should.be.an.Object.and.have.property('data');
                 obj.data.should.eql({ "pointless": "data" });
                 done();
             });
@@ -180,10 +180,10 @@ describe("Nodiak Riak Client Test Suite", function() {
         it("should be able to get an object", function(done) {
             riak._object.get('nodiak_test', 'this_ol_key', function(err, obj) {
                 should.not.exist(err);
-                obj.should.be.a('object').and.have.property('key', 'this_ol_key');
-                obj.should.be.a('object').and.have.property('data');
+                obj.should.be.an.Object.and.have.property('key', 'this_ol_key');
+                obj.should.be.an.Object.and.have.property('data');
                 obj.data.should.eql({ "pointless": "data" });
-                obj.metadata.should.be.a('object').and.have.property('vclock');
+                obj.metadata.should.be.an.Object.and.have.property('vclock');
                 done();
             });
         });
@@ -202,21 +202,21 @@ describe("Nodiak Riak Client Test Suite", function() {
 
                 riak._object.save('siblings_test', 'this_ol_key', { "pointless": "data" }, { meta: { extra: "meta data goes here"} }, function(err, obj) {
                     should.not.exist(err);
-                    obj.should.be.a('object').and.have.property('key', 'this_ol_key');
-                    obj.should.be.a('object').and.have.property('data');
+                    obj.should.be.an.Object.and.have.property('key', 'this_ol_key');
+                    obj.should.be.an.Object.and.have.property('data');
                     obj.data.should.eql({ "pointless": "data" });
                 
                     riak._object.save('siblings_test', 'this_ol_key', { "pointless": "sibling" }, { meta: {extra: "meta data goes EVERYWHERE"} }, function(err, obj) {
                         should.not.exist(err);
-                        obj.should.be.a('object').and.have.property('key', 'this_ol_key');
-                        obj.should.be.a('object').and.have.property('data');
+                        obj.should.be.an.Object.and.have.property('key', 'this_ol_key');
+                        obj.should.be.an.Object.and.have.property('data');
                         obj.data.should.eql({ "pointless": "sibling" });
 
                         riak._object.get('siblings_test', 'this_ol_key', function(err, obj) {
                             should.not.exist(err);
-                            obj.should.be.a('object').and.have.property('siblings');
+                            obj.should.be.an.Object.and.have.property('siblings');
                             obj.siblings.should.be.an.instanceof(Array);
-                            obj.metadata.should.be.a('object').and.have.property('vclock');
+                            obj.metadata.should.be.an.Object.and.have.property('vclock');
                             done();
                         });
                     });
@@ -295,7 +295,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                     function: 'reduce_count_inputs'})
                 .execute().stream()
                 .on('data', function(result) {
-                    result.should.be.a('object');
+                    result.should.be.an.Object;
                     result.data.should.be.an.instanceOf(Array);
                     result.data[0].should.equal(NUM_OBJECTS + 1);
                 })
@@ -320,7 +320,7 @@ describe("Nodiak Riak Client Test Suite", function() {
                     function: 'reduce_count_inputs'})     
                 .execute(function(err, result) {
                     should.not.exist(err);
-                    result.should.be.a('object');
+                    result.should.be.an.Object;
                     result.data.should.be.an.instanceOf(Array);
                     result.data[0].should.equal(NUM_OBJECTS + 1);
                     done();
