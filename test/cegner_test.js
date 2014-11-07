@@ -1,7 +1,12 @@
 var riak = require('nodiak');
 var helpers = require('nodiak/lib/helpers')
 
-var db = riak.getClient('http', "localhost", 11898, {riak_kv_wm_bucket_type: "/types"})
+var args = process.argv.slice(2);
+var host = args[0] || "localhost";
+var port = args[1] !== null ? parseInt(args[1]) : 8098;
+var variant = args[2] !== null ? parseInt(args[2]) : 2;
+
+var db = riak.getClient('http', host, port);
 
 db.ping(function(err, isAlive) {
     if (!isAlive) { 
@@ -34,15 +39,16 @@ db.loadResources(function(err, resources) {
     if ( raw ) {    
         db.resources(printer);
 
-        db._bucketType.list("json", printer);
+        if (variant >= 2) db._bucketType.list("json", printer);
         db._bucketType.list(null, printer);
 
         db._bucket.props(null, "users", printer);
-        db._bucket.props("json", "sessions", printer);
+        if (variant >= 2) db._bucket.props("json", "sessions", printer);
 
     } else {
-        var users = db.bucket("users");
-        var sessions = db.bucketType("json").buckets.new("sessions");
+        var users, sessions;
+        users = db.bucket("users");
+        if (variant >= 2) sessions = db.bucketType("json").buckets.new("sessions");
 
         // console.log("props");
         // users.getProps(printer);
@@ -57,7 +63,10 @@ db.loadResources(function(err, resources) {
         // var create = 0;
         if ( create ) {
             var key = "some_data";
-            sessions.objects.exists(key, function(err, exists) {
+
+            targetBucket = variant >= 2 ? sessions : users;
+            
+            targetBucket.objects.exists(key, function(err, exists) {
                 if (err) {
                     console.error(err);
                     return;
@@ -71,9 +80,9 @@ db.loadResources(function(err, resources) {
                         "counter": 1,
                         "createdAt": new Date().toISOString()
                     };
-                    sessions.objects.new(key, data).save(printer);
+                    targetBucket.objects.new(key, data).save(printer);
                 } else {
-                    sessions.objects.get(key, function(err, object) {
+                    targetBucket.objects.get(key, function(err, object) {
                         if (err) {
                             console.error("cannot fetch", key, err);
                             return;
