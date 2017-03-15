@@ -15,7 +15,7 @@
 	- [Counter instance attributes](#counter-instance-attributes)
 	- [Counter instance methods](#counter-instance-methods)
 - [Sibling Auto-Resolution](#sibling-auto-resolution)
-- [Riak Search and Riak 2i's](#riak-search-and-riak-2i's)
+- [Riak Search and Riak 2i's](#riak-search-and-riak-2is)
 - [MapReduce](#mapreduce)
 - [Tests](#tests)
 - [Todos](#todos)
@@ -56,7 +56,7 @@ Nodiak's design is split across two general concepts.  The base client, which ha
 
 >Version 0.4.0 includes minor, but breaking, changes to the streaming API.  The 2i streaming no longer auto-fetches the Riak objects for the keys returned by the query, and the streaming API form now returns an instance of `EventEmitter` directly from the `.stream()` calls rather than requiring an additional callback to be passed in.
 
-#####standard callback form
+##### standard callback form
 
 ```javascript
 bucket.objects.get(array_of_keys, function(err, objs){})
@@ -64,7 +64,7 @@ bucket.objects.get(array_of_keys, function(err, objs){})
 
 The argument signature of the callback for non-streaming results is always `callback(error, result)`.  Where error will always be either `null` when there was no error, or an instance of `Error`, or any array of `Error`s with details of the errors when they occur.  The `result` varies depending on the API call.  See the [detailed API documentation](#api) below for details.
 
-#####streaming callback form
+##### streaming callback form
 
 ```javascript
 bucket.objects.get(array_of_keys).stream()
@@ -75,9 +75,9 @@ bucket.objects.get(array_of_keys).stream()
 
 For streaming results the function `.stream()` returns gets an instance of `EventEmitter`, and this emitter fires `'data'`, `'error'`, and `'end'` events. 
 
-#Getting Started
+# Getting Started
  
-####require('nodiak').getClient( _[backend], [host], [port], [defaults]_ );
+#### require('nodiak').getClient( _[backend], [host], [port], [defaults]_ );
 ###### // get client instance (defaults to HTTP backend on localhost:8098)
 
 ```javascript
@@ -114,8 +114,8 @@ var sessions = require('nodiak').getClient('http', '192.168.2.20', 8098);
 var db = require('nodiak').getClient();
 ```
 
-##Cluster info and status:
-####.ping( _callback_ );
+## Cluster info and status:
+#### .ping( _callback_ );
 ###### //  check that you can reach Riak
 
 ```javascript
@@ -127,7 +127,7 @@ riak.ping(function(err, response) {
 'OK'
 > ```
 
-####.stats( _callback_ );
+#### .stats( _callback_ );
 ###### //  get current stats from Riak
 
 ```javascript
@@ -142,7 +142,7 @@ riak.stats(function(err, response) {
   ... }
 > ```
 
-####.resources( _callback_ );
+#### .resources( _callback_ );
 ###### // ask Riak for its current resource endpoints.
 
 > ***NOTE:*** 
@@ -168,24 +168,24 @@ riak.resources(function(err, response) {
 
 
 # Bucket Operations:
-##Bucket instance attributes
-* ####.name 
+## Bucket instance attributes
+* #### .name 
 >The name of the bucket in Riak as a `String`.
 
-* ####.props
+* #### .props
 >An `Object` containing the Riak [bucket properties](http://wiki.basho.com/HTTP-Set-Bucket-Properties.html).  Defaults to `{}`. 
 
-* ####.resolver
+* #### .resolver
 >The `Function` used to do sibling resolution on `.object.get()` requests.  Defaults to `Bucket.siblingLastWriteWins` ([see here](#sibling-auto-resolution)).
 
-* ####.getSiblingsSync
+* #### .getSiblingsSync
 >Controls whether or not fetching siblings happens using parallel async requests or as one big _'multipart/mixed'_ to be parsed at once. Defaults to `false`.
 
-* ####.client
+* #### .client
 >An instance of the underlying backend client that handles communication with Riak.  Is set to the client that created the `Bucket` instance with `client.bucket()`.
 
-##Bucket instance methods
-####_client_.bucket( _name_ );
+## Bucket instance methods
+#### _client_.bucket( _name_ );
 ###### // factory method on the client that returns an instance of a Bucket object.
 
 ```javascript
@@ -209,7 +209,7 @@ riak.bucket('users').objects.all(function(err, r_objs) {
 [[Object], [Object], [Object]]  // Array of RObjects
 >```
 
-####Bucket.getProps( _[callback]_ );
+#### Bucket.getProps( _[callback]_ );
 ###### // update the Bucket instance with its bucket props from Riak
 
 ```javascript
@@ -228,7 +228,7 @@ user_bucket.getProps(function(err, props) {
   ... }
 >```
 
-####Bucket.saveProps( _[merge], [callback]_ );
+#### Bucket.saveProps( _[merge], [callback]_ );
 ###### // save updated bucket properties back to Riak.
 
 ```javascript
@@ -253,7 +253,7 @@ users.saveProps(true, function(err, props) {
 
 The optional `merge` argument is a boolean indicating wether to first get the bucket's properties from Riak and merge your updates with them, or to simply write your updates to Riak right away. This defaults to `true` and is helpful in preventing you from obliterating things like pre and post-commit hooks defined on the bucket.
 
-####Bucket.object.new( _key, [data], [metadata]_ )
+#### Bucket.object.new( _key, [data], [metadata]_ )
 ###### // factory method that returns a new instance of an RObject.
 
 ```javascript
@@ -262,7 +262,7 @@ var my_robj = riak.bucket('users').object.new('some_key', { store: 'this thing'}
 
 It's important to understand that this new object ***has not*** been read from or written to Riak at this point.  If you know this key already exists in, or you want to refresh its data from, Riak, then you can 'hydrate' it using the RObject's `.fetch()` method.
 
-####Bucket.object.exists( _key, callback_ )
+#### Bucket.object.exists( _key, callback_ )
 ###### // checks if an object exists in Riak
 
 ```javascript
@@ -273,7 +273,7 @@ riak.bucket('users').object.exists('some_key', function(err, result) {
 
 `result` will be either `true` or `false`.
 
-####Bucket.objects.get( _keys, [options], [resolver_fn, callback]_ )
+#### Bucket.objects.get( _keys, [options], [resolver_fn, callback]_ )
 ###### // get one or more objects from Riak as RObjects.
 
 This method can take a single key or an `Array` of keys as input.  Each request happens asynchronously in parallel.  The optional `options` parameter is an object that can contain [Riak query parameters](http://wiki.basho.com/HTTP-Fetch-Object.html).  Additionally, the optional `resolver_fn` parameter allows you to pass in a custom sibling resolution function in the event any siblings are found.
@@ -295,7 +295,7 @@ If a single _key_ is passed in _(not wrapped in an `Array`)_, then the single re
 
 >By default nodiak fetches object siblings using parallel async GET requests for each sibling.  This behavior can be overridden by setting the `.getSiblingsSync` property on the `Bucket` instance to `true`.  This will cause nodiak to get all the siblings as a single large *'multipart/mixed'* document and parse the contents.  Further details in the [Sibling Auto-Resolution](#sibling-auto-resolution) section.
 
-####Bucket.objects.get( _keys, [options]_ ).stream( _[resolver_fn]_ )
+#### Bucket.objects.get( _keys, [options]_ ).stream( _[resolver_fn]_ )
 ###### // get one or more objects from Riak as a stream of RObjects.
 
 All the same details apply here as in the standard `Bucket.objects.get()` method, except to signal that you want to stream the objects back from Riak you drop the callback **and** the resolver from `.get()`, place them in `.stream()`, and attach your listeners to the parameter passed to the callback.
@@ -315,7 +315,7 @@ riak.bucket('users').objects.get(my_keys, { r: 1 }).stream()
 });
 ```
 
-####Bucket.objects.save( _r_objects, [callback]_)
+#### Bucket.objects.save( _r_objects, [callback]_)
 ###### // save one or more RObjects to Riak.
 
 You can pass a single `RObject` or an `Array` of `RObject`s into this method.  Just like with the `.get()` and `.delete()` methods, each save request will happen asynchronously in parallel.
@@ -340,7 +340,7 @@ Results returned through `objs` will be returned as an `Array` of successfully s
 
 If a single `RObject` is passed in _(not wrapped in an `Array`)_, then the single successfully saved `RObject` will be returned directly through `objs` for convenience, and will be `null` if an error occurred.  In the case of an error `err` will contain the single `Error` directly or will be `null` if none occurred.  This is provided for convenience when you're not bulk saving multiple objects. 
 
-####Bucket.objects.save( _r_objects_ ).stream()
+#### Bucket.objects.save( _r_objects_ ).stream()
 ###### // save one or more RObjects to Riak and get streamed results.
 
 All the same details apply here as in the standard `Bucket.objects.save()` method, except to signal that you want to stream the result notifications back from Riak you drop the callback from `.save()`, and append `.stream()`, and attach your listeners to the returned `EventListener`.
@@ -367,7 +367,7 @@ riak.bucket('users').objects.save(things_to_save).stream()
 });
 ```
 
-####Bucket.objects.delete( _r_objects, [callback]_ )
+#### Bucket.objects.delete( _r_objects, [callback]_ )
 ###### // delete one or more RObjects from Riak.
 
 You can pass a single `RObject` or an `Array` of `RObject`s into this method.  Just like with the `.get()` and `.save()` methods, each delete request will happen asynchronously in parallel.
@@ -383,7 +383,7 @@ Results returned through `objs` will be returned as an `Array` of successfully d
 
 If a single `RObject` is passed in _(not wrapped in an `Array`)_, then the single successfully deleted `RObject` will be returned directly through `objs` for convenience, and will be `null` if an error occurred.  In the case of an error `err` will contain the single `Error` directly or will be `null` if none occurred.  This is provided for convenience when you're not bulk deleting multiple objects. 
 
-####Bucket.objects.delete( _r_objects_ ).stream()
+#### Bucket.objects.delete( _r_objects_ ).stream()
 ###### // delete one or more RObjects to Riak and get streamed results.
 
 All the same details apply here as in the standard `Bucket.objects.delete()` method, except to signal that you want to stream the result notifications back from Riak you drop the callback from `.save()`, and append `.stream()`, and attach your listeners to the returned `EventListener`.
@@ -401,7 +401,7 @@ riak.bucket('users').objects.delete(array_of_robjs).stream()
 });
 ```
 
-####Bucket.objects.all( _callback_ )
+#### Bucket.objects.all( _callback_ )
 ###### // traverse a bucket to get all the RObjects in it.  DO _NOT_ USE IN PRODUCTION, okay? OK.
 
 This method is the equivalent of the dreaded _list keys_ operation… _except even more deadly!_  This will not only perform a list keys on the bucket, but it will also `.get()` every single key it finds.  Use this only for development/testing purposes.  **If you think you need this in production, you're doing it wrong!**
@@ -415,18 +415,18 @@ riak.bucket('users').objects.all(function(err, objs) {
 });
 ```
 
-#RObject Operations
-##RObject instance attributes
-* ####.bucket
+# RObject Operations
+## RObject instance attributes
+* #### .bucket
 >The `Bucket` instance that created this `RObject`.
 
-* ####.key
+* #### .key
 >The key for this object in Riak.  Defaults to `null`, which will cause Riak to generate a key when saving the RObject.
 
-* ####.data
+* #### .data
 >The data stored in Riak for this object.  Defaults to `{}`.
 
-* ####.metadata
+* #### .metadata
 >The metadata on the object stored in Riak, ie. vclock, content_type, last_modified, etc.  Defaults to `{}`.  A fully populated `metadata` object might look like this:
 >>```javascript
 {
@@ -451,14 +451,14 @@ riak.bucket('users').objects.all(function(err, objs) {
 }
 >>```
 
-* ####.options
+* #### .options
 >An `Object` for setting [Riak query parameters](http://wiki.basho.com/HTTP-Fetch-Object.html).  Defaults to `{}`.
 
-* ####.siblings
+* #### .siblings
 >An `Array` of sibling `RObjects` for this object in Riak.  Defaults to `undefined`.
 
-##RObjects instance methods
-####RObject.save( _[callback]_ )
+## RObjects instance methods
+#### RObject.save( _[callback]_ )
 ###### // saves this RObject instance to Riak. Uses RObject's `.options` for the request if they exist.
 
 ```javascript
@@ -469,7 +469,7 @@ my_obj.save(function(err, obj) {
 });
 ```
 
-####RObject.delete( _[callback]_ )
+#### RObject.delete( _[callback]_ )
 ###### // deletes this RObject instance from Riak. Uses RObject's `.options` for the request if they exist.
 
 ```javascript
@@ -478,7 +478,7 @@ my_obj.delete(function(err, obj) {
 });
 ```
 
-####RObject.fetch( _[resolver_fn], callback_ )
+#### RObject.fetch( _[resolver_fn], callback_ )
 ###### // fetch/refresh object data from Riak and update this RObject's data, metadata, siblings.  Uses RObject's `.options` for the request if they exist.
 
 ```javascript
@@ -491,7 +491,7 @@ my_obj.fetch(function(err, obj) {
 
 Notice that this method can also take a custom [`resolver_fn`](#sibling-auto-resolution) in the event that reading updated data from Riak results in finding siblings.  If this isn't set it defaults to the resolver function on the `Bucket` instance that produced this `RObject`.
 
-####RObject.setMeta( _name, value_ )
+#### RObject.setMeta( _name, value_ )
 ###### // set an X-Riak-Meta entry on this RObject.
 
 ```javascript
@@ -500,7 +500,7 @@ riak.bucket('users').object.get('me', function(err, obj) {
 });
 ```
 
-####RObject.getMeta( _name_ )
+#### RObject.getMeta( _name_ )
 ###### // get an X-Riak-Meta entry to this RObject.
 
 ```javascript
@@ -509,7 +509,7 @@ riak.bucket('users').object.get('me', function(err, obj) {
 });
 ```
 
-####RObject.removeMeta( _name_ )
+#### RObject.removeMeta( _name_ )
 ###### // remove an X-Riak-Meta entry from this RObject.
 
 ```javascript
@@ -518,7 +518,7 @@ riak.bucket('users').object.get('me', function(err, obj) {
 });
 ```
 
-####RObject.addToIndex( _name, value_ )
+#### RObject.addToIndex( _name, value_ )
 ###### // add an X-Riak-Index entry to this RObject.
 
 The `name` parameter sets the base name of the index.  The type, `_int` or `_bin`, of the index will be determined by the data type of `value`.  Anything passed into `value` that is an integer will be set in `metadata.index.name.int`, and anything else will be set in `metadata.index.name.bin`.
@@ -533,7 +533,7 @@ riak.bucket('users').object.get('me', function(err, obj) {
 In the second example an `Array` of values was passed into the `value` parameter.  This will add all the values in the array to the named index.  All the values should be of the type in the array.
 
 
-####RObject.getIndex( _name_ )
+#### RObject.getIndex( _name_ )
 ###### // get all values as an `Array` in an X-Riak-Index entry on this RObject.
 
 ```javascript
@@ -542,7 +542,7 @@ riak.bucket('users').object.get('me', function(err, obj) {
 });
 ```
 
-####RObject.removeFromIndex( _name, value_ )
+#### RObject.removeFromIndex( _name, value_ )
 ###### // remove a specific value from an X-Riak-Index entry on this RObject.
 
 Just like with the `.addToIndex()` method, the actual type of the underlying index will be determined based on the data type of the `value` you pass in.
@@ -553,7 +553,7 @@ riak.bucket('users').object.get('me', function(err, obj) {
 });
 ```
 
-####RObject.clearIndex( _name_ )
+#### RObject.clearIndex( _name_ )
 ###### // clears all values out of an X-Riak-Index entry on this RObject.
 
 ```javascript
@@ -562,28 +562,28 @@ riak.bucket('users').object.get('me', function(err, obj) {
 });
 ```
 
-#Counter Operations
-##Counter instance attributes
-* ####.bucket
+# Counter Operations
+## Counter instance attributes
+* #### .bucket
 >The `Bucket` instance that this `Counter` belongs to.
 
-* ####.name
+* #### .name
 >The name of the `Counter` that will be worked on in the `Bucket`
 
 
-##Counter instance methods
+## Counter instance methods
 > ***NOTE:*** 
 
 >In order to use Riak Counters you must set `allow_mult: true` on the bucket properties for the bucket where you'll create your counters; as the CRDT counter functionality in Riak depends on siblings being created on write. 
 
-####_client_.counter( _bucket_name, counter_name_ );
+#### _client_.counter( _bucket_name, counter_name_ );
 ###### // factory method on the client that returns an instance of a Counter object.
 
 ```javascript
 var likes = riak.counter('the_counts', 'likes');
 ```
 
-####Counter.add( _amount, callback_ )
+#### Counter.add( _amount, callback_ )
 ###### // adds `amount` to the current value of a Riak counter.
 
 ```javascript
@@ -594,7 +594,7 @@ likes.add(5, function(err) {
 });
 ```
 
-####Counter.subtract( _amount, callback_ )
+#### Counter.subtract( _amount, callback_ )
 ###### // subtracts `amount` from the current value of a Riak counter.
 
 ```javascript
@@ -605,7 +605,7 @@ likes.subtract(5, function(err) {
 });
 ```
 
-####Counter.value( _callback_ )
+#### Counter.value( _callback_ )
 ###### // gets the current value of a Riak counter.
 
 ```javascript
@@ -616,7 +616,7 @@ likes.value(function(err, count) {
 });
 ```
 
-##Sibling Auto-Resolution
+## Sibling Auto-Resolution
 
 By default nodiak's Bucket class contains a client-side implementation of Last-Write-Wins for managing resolution.  It takes an array of sibling RObjects and returns the resolved sibling.  Implemented as follows:
 
@@ -680,9 +680,9 @@ The RObject `.fetch()` method also accepts a user defined resolver function prec
 > The tradeoff is in the overhead in making lots and lots of smaller requests compared to one monolithic request.  The former can impact your network and cluster more negatively as it has to deal with the concurrent requests, but the latter also induces additionally time blocking while lots of data is being read and processed for a single request.
 
 
-##Riak Search and Riak 2i's
+## Riak Search and Riak 2i's
 
-####Bucket.search.solr( _query, callback_ )
+#### Bucket.search.solr( _query, callback_ )
 ###### // perform a Riak Search operation and retrieve the standard Riak Search response object.
 
 The `query` should be an `Object` containing properties that map to the URL query params specified in [Querying via the Solr Interface](http://wiki.basho.com/Riak-Search---Querying.html).  The `wt` parameter defaults to JSON.
@@ -730,7 +730,7 @@ riak.bucket('test').search.solr(query, true, function(err, response) {
 }
 >```
 
-####Bucket.search.solr( _query_ ).stream()
+#### Bucket.search.solr( _query_ ).stream()
 ###### // perform a Riak Search operation and stream back the `docs` elements as `RObject`s
 
 Just as with the non-streaming version of this call, the `query` should be an `Object` containing properties that map to the URL query params specified in [Querying via the Solr Interface](http://wiki.basho.com/Riak-Search---Querying.html).  The `wt` parameter defaults to JSON.
@@ -759,7 +759,7 @@ riak.bucket('test').search.solr(query).stream()
 This is simply provided as a convenience for when you know specifically that you want to fetch the actual objects in Riak referenced by the search result.
 
 
-####Bucket.search.twoi( _query, index, [options], callback_ )
+#### Bucket.search.twoi( _query, index, [options], callback_ )
 ###### // a 2i's range query that returns the list of matching keys (options is for Riak 1.4+).
 
 The query format in nodiak for a 2i's search is an `Array` tuple containing the beginning and end of the range you want to search `['a','zzzzzzzzz']`, or just a scalar value when you want to do an exact match `'match_this'`.
@@ -776,7 +776,7 @@ riak.bucket('test').search.twoi([0,10000], 'my_numbers', {max_results:50}, funct
 
 The response will be an `Array` of the matching keys with the duplicates removed.  Riak by default adds a *key* to the matching set for every match, so if you have multiple entries in an index that match your query, then you'll get duplicate entries of that *key*  in the results.  If for some reason you need those duplicates then you can use the underlying backend adapter client directly.
 
-####Bucket.search.twoi( _query, index, options_ ).stream()
+#### Bucket.search.twoi( _query, index, options_ ).stream()
 ###### // a 2i's range query that streams back the matched keys (options is for Riak 1.4+).
 
 ```javascript
@@ -802,7 +802,7 @@ results.on('end', function(continuation) {
 > My current thoughts are to iterate through the result set and stream back `RObject`s that simply have a `.term` property set on them that has the original matched-term set on it.
 
 
-##MapReduce
+## MapReduce
 
 MapReduce queries in nodiak are performed by chaining `map`, `link`, and `reduce` phases together on a set of `inputs` and then finally by running the chain using `execute`.
 
@@ -816,8 +816,8 @@ For ad-hoc Erlang functions to work in Riak you have to add `{allow_strfun, true
 
 > Only use ad-hoc queries in development, they're slower and open up potential security risks compared to queries pre-deployed in your cluster.
 
-###client.mapred.inputs( _inputs, [include_data]_ )
-####.map( _phase_ ) .link( _phase_ ) .reduce( _phase_ )  .execute( _callback_ )
+### client.mapred.inputs( _inputs, [include_data]_ )
+#### .map( _phase_ ) .link( _phase_ ) .reduce( _phase_ )  .execute( _callback_ )
 ###### // MapReduce w/ pre-aggregated results.
 
 ```javascript
@@ -838,7 +838,7 @@ riak.mapred.inputs([['a_bucket','key1'], ['b_bucket','key2']])
     }
 );
 ```
-####.execute( ).stream()
+#### .execute( ).stream()
 ###### // MapReduce w/ streaming results.
 
 ```javascript
@@ -885,7 +885,7 @@ The test suite can take several environment variables to modify what gets tested
 
     $ NODIAK_BACKEND=http  NODIAK_HOST=localhost  NODIAK_PORT=8098  NODIAK_SEARCH=false  NODIAK_2I=false npm test`
 
-#Todos
+# Todos
 
 1. Add a protobufs backend implementation.
 
